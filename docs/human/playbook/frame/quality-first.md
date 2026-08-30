@@ -2,6 +2,7 @@
 title: "Quality-First: How a Modern Approach to QA Helps Ship Quickly and Confidently"
 sidebar_label: Quality-First
 description: "A thoughtfully crafted quality strategy improves velocity instead of trading it away: how spec-driven development and shift-left QA reduce entropy across the SDLC."
+useDescriptionAsSubtitle: true
 slug: /playbook/frame/quality-first
 tags: [playbook, frame]
 last_reviewed: 2026-09-06

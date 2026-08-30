@@ -112,6 +112,17 @@ describe('frontmatter parsing and validation', () => {
     );
   });
 
+  it('validates the optional description subtitle flag', () => {
+    assert.deepEqual(
+      validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: true`)),
+      [],
+    );
+    hasError(
+      validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: "true"`)),
+      'useDescriptionAsSubtitle must be a boolean value',
+    );
+  });
+
   it('applies content-kind author rules', () => {
     const withoutAuthors = validMission.replace('\nauthors: [trilemma-foundation]', '');
     hasError(validate(frontmatter(withoutAuthors)), "missing required frontmatter field 'authors'");

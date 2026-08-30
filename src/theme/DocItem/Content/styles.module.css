@@ -1,3 +1,12 @@
+.docSubtitle {
+  max-width: 52rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 1.125rem;
+  line-height: 1.55;
+}
+
 .docByline {
   display: flex;
   flex-wrap: wrap;

@@ -72,6 +72,16 @@ function validateOptionalStringField(frontmatter, field, filePath, errors) {
   }
 }
 
+function validateOptionalBooleanField(frontmatter, field, filePath, errors) {
+  const value = frontmatter[field];
+  if (typeof value === 'undefined') {
+    return;
+  }
+  if (typeof value !== 'boolean') {
+    errors.push(`${filePath}: ${field} must be a boolean value`);
+  }
+}
+
 export function isValidReviewedDate(value) {
   if (typeof value !== 'string' || !dateRegex.test(value)) {
     return false;
@@ -188,6 +198,12 @@ function validateCanonicalFile(filePath, frontmatter, authorIds) {
   }
 
   validateStringList(frontmatter, 'tags', filePath, errors);
+  validateOptionalBooleanField(
+    frontmatter,
+    'useDescriptionAsSubtitle',
+    filePath,
+    errors,
+  );
   const authors = validateStringList(frontmatter, 'authors', filePath, errors);
   if (authors) {
     if (authors.length === 0) {

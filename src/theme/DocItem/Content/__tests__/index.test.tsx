@@ -10,11 +10,16 @@ const mockUsePluginData = usePluginData as jest.Mock;
 function renderDoc(
   frontMatter: Record<string, unknown>,
   source: string,
-  options: {contentTitle?: string; includeReadTime?: boolean} = {},
+  options: {
+    contentTitle?: string;
+    description?: string;
+    includeReadTime?: boolean;
+  } = {},
 ) {
   mockUseDoc.mockReturnValue({
     metadata: {
       title: 'Doc Title',
+      description: options.description ?? 'Doc description',
       source,
     },
     frontMatter,
@@ -37,7 +42,7 @@ function renderDoc(
   );
 }
 
-describe('DocItemContent byline', () => {
+describe('DocItemContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -60,6 +65,36 @@ describe('DocItemContent byline', () => {
     ).toHaveAttribute('href', '/authors/trilemma-foundation');
     expect(screen.getByText('1 min read')).toBeInTheDocument();
     expect(screen.queryByText(/^By/i)).not.toBeInTheDocument();
+  });
+
+  it('renders the frontmatter description as a subtitle', () => {
+    renderDoc(
+      {content_kind: 'module', useDescriptionAsSubtitle: true},
+      '@site/docs/human/playbook/frame/frame.md',
+      {description: 'Orient the reader before the document begins.'},
+    );
+
+    expect(
+      screen.getByText('Orient the reader before the document begins.'),
+    ).toHaveClass('docSubtitle');
+  });
+
+  it('does not render the subtitle unless the frontmatter flag is true', () => {
+    renderDoc(
+      {content_kind: 'module'},
+      '@site/docs/human/playbook/frame/frame.md',
+    );
+
+    expect(screen.queryByText('Doc description')).not.toBeInTheDocument();
+  });
+
+  it('does not render subtitles on generated mirror pages', () => {
+    renderDoc(
+      {content_kind: 'mirror', useDescriptionAsSubtitle: true},
+      '@site/docs/agents/human/playbook/frame/frame.md',
+    );
+
+    expect(screen.queryByText('Doc description')).not.toBeInTheDocument();
   });
 
   it('renders reference pages as institutionally maintained', () => {
