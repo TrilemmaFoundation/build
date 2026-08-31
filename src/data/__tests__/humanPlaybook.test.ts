@@ -127,6 +127,25 @@ describe('human playbook data', () => {
     ).toEqual(['root']);
   });
 
+  it('uses an explicit JSON sidebar label when provided', () => {
+    const root = {
+      id: 'root',
+      title: 'Page title',
+      sidebarLabel: 'JSON sidebar label',
+      description: 'Root document',
+      docId: 'root',
+    };
+
+    expect(buildHumanPlaybookSidebar(root)).toEqual([
+      {type: 'doc', id: 'root', label: 'JSON sidebar label'},
+    ]);
+    expect(buildAgentPlaybookSidebar(root)).toEqual([
+      'index',
+      'human/index',
+      {type: 'doc', id: 'human/root', label: 'JSON sidebar label'},
+    ]);
+  });
+
   it('falls back to grouped categories when playbook sections are absent', () => {
     const root = {
       id: 'root',

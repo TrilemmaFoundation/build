@@ -2,7 +2,8 @@ import humanPlaybookTreeData from './humanPlaybook.data.json';
 
 export type PlaybookTreeNode = {
   id: string;
-  title: string;
+  title?: string;
+  sidebarLabel?: string;
   description: string;
   docId?: string;
   to?: string;
@@ -11,6 +12,11 @@ export type PlaybookTreeNode = {
 
 export type GeneratedSidebarItem =
   | string
+  | {
+      type: 'doc';
+      id: string;
+      label: string;
+    }
   | {
       type: 'category';
       label: string;
@@ -21,6 +27,27 @@ export type GeneratedSidebarItem =
 
 export const humanPlaybookTree: PlaybookTreeNode[] = humanPlaybookTreeData;
 
+function categoryTitle(node: PlaybookTreeNode): string {
+  if (!node.title) {
+    throw new Error(`Playbook category '${node.id}' is missing title`);
+  }
+  return node.title;
+}
+
+function docSidebarItem(
+  node: PlaybookTreeNode,
+  mapDocId: (docId: string) => string,
+): GeneratedSidebarItem {
+  if (!node.docId) {
+    throw new Error(`Playbook leaf '${node.id}' is missing docId`);
+  }
+
+  const id = mapDocId(node.docId);
+  return node.sidebarLabel
+    ? {type: 'doc', id, label: node.sidebarLabel}
+    : id;
+}
+
 function nestedSidebarItem(
   node: PlaybookTreeNode,
   mapDocId: (docId: string) => string,
@@ -29,16 +56,13 @@ function nestedSidebarItem(
   if (node.children?.length) {
     return {
       type: 'category',
-      label: node.title,
+      label: categoryTitle(node),
       collapsed: false,
       collapsible: options.collapsible,
       items: node.children.map((child) => nestedSidebarItem(child, mapDocId)),
     };
   }
-  if (!node.docId) {
-    throw new Error(`Playbook leaf '${node.id}' is missing docId`);
-  }
-  return mapDocId(node.docId);
+  return docSidebarItem(node, mapDocId);
 }
 
 function buildPlaybookSidebar(
@@ -63,7 +87,7 @@ function buildPlaybookSidebar(
       label: 'About',
       collapsible: false,
       items: [
-        mapDocId(root.docId),
+        docSidebarItem(root, mapDocId),
         ...aboutNodes.map((node) => nestedSidebarItem(node, mapDocId)),
       ],
     },
@@ -83,10 +107,10 @@ function buildPlaybookSidebar(
 
   return [
     ...(options.leadingItems ?? []),
-    mapDocId(root.docId),
+    docSidebarItem(root, mapDocId),
     ...(root.children ?? []).map((node) => ({
       type: 'category' as const,
-      label: node.title,
+      label: categoryTitle(node),
       collapsed: false,
       items: node.children?.length
         ? node.children.map((child) => nestedSidebarItem(child, mapDocId))

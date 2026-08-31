@@ -78,6 +78,7 @@ describe('agentDocsUtils', () => {
   it('builds mirror metadata and documents with stripped MDX', () => {
     const sourceText = `---
 title: Source Title
+sidebar_label: Source sidebar label
 description: Source description
 slug: /playbook/example
 ---
@@ -101,6 +102,7 @@ Body text.
     const metadata = metadataFromNode(sourceText, node);
     assert.deepEqual(metadata, {
       title: 'Source Title',
+      sidebarLabel: 'Source sidebar label',
       description: 'Source description',
       slug: '/playbook/example',
       canonicalHumanUrl: '/docs/playbook/example',
@@ -111,6 +113,7 @@ Body text.
     const output = buildAgentMirrorDocument(sourceText, metadata);
     assert.match(output, /^---\n/);
     assert.match(output, /content_kind: mirror/);
+    assert.match(output, /sidebar_label: Source sidebar label/);
     assert.match(output, /canonical_human_url: \/docs\/playbook\/example/);
     assert.match(output, /Agent-first mirror/);
     assert.match(output, /# Heading/);
@@ -262,7 +265,6 @@ describe('generateAgentDocs', () => {
           children: [
             {
               id: 'another',
-              title: 'Another',
               description: 'Another description',
               docId: 'playbook/frame/another',
               to: '/docs/playbook/another',
@@ -288,6 +290,7 @@ slug: /playbook/sample
       'docs/human/playbook/frame/another.md',
       `---
 title: Another
+sidebar_label: Another sidebar label
 description: Another description
 slug: /playbook/another
 ---
@@ -312,6 +315,7 @@ slug: /playbook/another
     const overview = fs.readFileSync(path.join(mirrorRoot, 'index.md'), 'utf8');
     assert.match(overview, /Human Docs Mirror/);
     assert.match(overview, /\/agents\/playbook\/sample/);
+    assert.match(overview, /\[Another sidebar label\]/);
   });
 
   it('rejects docIds that escape the agent mirror root', () => {
