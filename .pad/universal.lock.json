@@ -1,0 +1,12 @@
+{
+  "files": {
+    ".agents/skills/pad-engineering/SKILL.md": "07b6a8d2255834a6e5c97daffa14781b87977fdd2f6b74fbdab5c56086c5a4b2",
+    "AGENTS.md": "8e0e7df28f0df8d847f4981da0978c28c2c9615b0382c3bfc62c6af90a52f6b1",
+    "PROJECT_AGENT.md": "2fe79a13ae6401696119f058bb985c7e5b0fa2ad7fadf864fe151f11beacf84b",
+    "scripts/verify": "f0d9901c69d77a47f084a6cf64176e89a31f0618b8ef6d85bb984b649e0f1b31",
+    "scripts/verify-fast": "ac5cb87f802f3b4142c015643ed951327ecea8f46bb61d503afe248a35e51172"
+  },
+  "repository": "foundation-build",
+  "version": "1.0.0",
+  "workspace": "build-trilemma-engineering"
+}
