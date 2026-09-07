@@ -4,7 +4,7 @@ sidebar_label: From Chat to Tickets
 description: "Chat is an interface; a ticket is a unit of work. As agentic development matures, software engineering should move from chat-first development toward ticket-based development."
 slug: /playbook/build/from-chat-to-tickets
 tags: [playbook, build]
-last_reviewed: 2026-09-06
+last_reviewed: 2026-09-07
 authors: [matt-faltyn]
 ---
 
@@ -143,7 +143,7 @@ In fact, tickets become more useful when implementation becomes cheaper.
 A good ticket gives an agent a bounded problem:
 
 ```text
-TASK-42
+WORK-42
 
 Add keyboard navigation to the search results.
 
@@ -184,11 +184,11 @@ This is especially true when maintaining several projects.
 You might work linearly within each project:
 
 ```text
-Project A → TASK-14 → TASK-15 → TASK-16
+Project A → WORK-14 → WORK-15 → WORK-16
 
-Project B → TASK-31 → TASK-32
+Project B → WORK-31 → WORK-32
 
-Project C → BUG-8 → TASK-9
+Project C → WORK-8 (bug) → WORK-9
 ```
 
 There is no project manager.
@@ -206,7 +206,7 @@ The project should be able to tell you:
 - what should happen next;
 - what bugs have been discovered;
 - what decisions have already been made;
-- what larger plans those tasks belong to.
+- what larger plans those work items belong to.
 
 **Ticketing is not primarily about concurrency. It is about state.**
 
@@ -242,19 +242,23 @@ A spec might say:
 
 > Users must be able to search all indexed datasets by title, description, and organization.
 
-That requirement may produce several implementation tickets:
+That requirement may produce a plan and several Work items:
 
 ```text
-TASK-21  Add full-text dataset index
-TASK-22  Implement search API
-TASK-23  Build search interface
-TASK-24  Add keyboard navigation
-TASK-25  Add search regression tests
+PLAN-4   Search indexed datasets
+
+WORK-21  Add full-text dataset index
+WORK-22  Implement search API
+WORK-23  Build search interface
+WORK-24  Add keyboard navigation
+WORK-25  Add search regression tests
 ```
 
 The specification preserves product intent.
 
-The tickets turn that intent into executable slices.
+The plan holds the multi-ticket objective.
+
+The Work items turn that intent into executable slices.
 
 The implementation fulfills the tickets.
 
@@ -286,16 +290,11 @@ Pad
 └── MCP integration
 ```
 
-Pad runs locally, with its web interface on `127.0.0.1:7777` and project data stored locally in SQLite. Agents reach that same state through the CLI, installed skills, and MCP rather than through a separate prompt-side tracker. See the [Pad getting started guide](https://www.getpad.dev/docs) for installation and the current local workflow.
+Pad runs locally, with its web interface on `127.0.0.1:7777` and project data stored locally in SQLite. Agents reach that same state through the CLI, installed skills, and MCP rather than through a separate prompt-side tracker. See the [Pad getting started guide](https://www.getpad.dev/docs) for installation.
 
-A repository is connected with:
+A repository is linked to a Pad workspace. The same workspace can then be accessed through the browser, CLI, or supported coding agents.
 
-```bash
-cd /path/to/project
-pad init
-```
-
-The same workspace can then be accessed through the browser, CLI, or supported coding agents.
+Pad holds intent, status, decisions, and handoffs. Git holds the code. CI holds independent verification.
 
 This matters because the agent does not need a separate imitation of the project management system inside its prompt.
 
@@ -305,32 +304,30 @@ The project state already exists.
 
 A useful agentic project contains several different kinds of state.
 
-Pad represents these through collections such as:
+Our Pad workspace uses two collections for executable work:
 
 ```text
-Tasks
-Ideas
+Work
 Plans
-Docs
 ```
 
 The distinction matters.
 
-An idea is not necessarily work.
+A Work item is one executable objective: a feature, a bug, a refactor, an investigation, or maintenance.
 
-A plan is not necessarily a single task.
+A plan is not a substitute for that ticket. It is a container for a genuinely multi-ticket objective.
 
-Documentation should not need to masquerade as a ticket.
+Documentation stays in the repository. It should not masquerade as a ticket.
 
-And a ticket should remain small enough to execute.
+Discovered work is not an "idea" collection either. If an agent notices something that should happen later, it opens a new Work item — or a Plan, if the discovery is genuinely several tickets — and then finishes the ticket it was asked to do.
 
 Consider an agent discovering that a site's search architecture should eventually move from simple SQL filtering to a dedicated index.
 
-That does not mean the current task should suddenly become:
+That does not mean the current ticket should suddenly become:
 
 > Redesign the entire search architecture.
 
-The agent can instead capture an idea or create a future task while completing the work it was originally asked to do.
+The agent can instead open a new Work item for that later change — or a Plan, if it is genuinely several tickets — and finish the work it was originally asked to do.
 
 This creates a powerful discipline:
 
@@ -444,32 +441,32 @@ we get:
 ```text
 Backlog
    ↓
-Select Ticket
+Specify until Ready
    ↓
-Read Context
+Select one Ready ticket
    ↓
 Implement
    ↓
-Test
+Verify
    ↓
 Review
    ↓
-Update Project State
+Record evidence
    ↓
-Next Ticket
+Next ticket
 ```
 
 A practical agent run should roughly follow this sequence:
 
-1. Select one ticket.
-2. Read its requirements and acceptance criteria.
-3. Load relevant project conventions or playbooks.
+1. Do not start material implementation until the ticket is specified: intended behaviour, invariants, acceptance criteria, and how it will be verified.
+2. Select one Ready Work item.
+3. Read it, then load the relevant project conventions or playbooks.
 4. Inspect the existing implementation.
-5. Make the smallest coherent change that satisfies the ticket.
-6. Run the relevant tests and validation.
-7. Review the resulting diff.
-8. Record important discoveries as new work rather than silently expanding scope.
-9. Mark the ticket complete only when its acceptance criteria are satisfied.
+5. Make the smallest coherent change that satisfies the ticket. Put unrelated discoveries in a new Work item — or a Plan, if they are genuinely several tickets.
+6. Run the project's verification before calling the work done.
+7. Review the resulting diff. Consequential work should be reviewed independently.
+8. Record evidence, then mark the ticket complete only when its acceptance criteria and verification hold.
+9. If the work is incomplete, leave a handoff another agent can resume without the chat.
 
 The agent is still doing software engineering through natural language.
 
@@ -529,7 +526,7 @@ Conversation
      ↓
 Decision
      ↓
-Ticket / Plan / Idea / Doc
+Work / Plan
      ↓
 Execution
 ```
@@ -551,30 +548,35 @@ Spec
  ↓
 Plan
  ↓
-Tickets
+Work items
  ↓
 Agent Execution
  ↓
-Tests
+Verify
  ↓
 Review
+ ↓
+Evidence
  ↓
 Ship
 ```
 
+A Plan exists only when the objective is genuinely several tickets. Otherwise the spec produces Work items directly.
+
 Before substantial implementation begins:
 
-- translate planned work into bounded tickets;
-- give important tickets explicit acceptance criteria;
+- specify each ticket until it is Ready: intended behaviour, invariants, acceptance criteria, and verification;
+- do not start material implementation before that Ready gate;
 - keep product requirements outside ephemeral conversations;
 - make project conventions available to agents;
-- capture newly discovered work instead of silently expanding scope;
+- capture newly discovered work as a new Work item or Plan instead of silently expanding scope;
 - preserve project state between agent sessions;
-- require validation before work is marked complete.
+- verify and review before calling the work done;
+- record evidence, and leave a handoff if the work is incomplete.
 
 The exact tooling is secondary.
 
-Pad currently provides a particularly clean implementation because local project management, agent integration, conventions, plans, documentation, and tasks can share one system.
+Pad currently provides a particularly clean implementation because humans and agents share Work, Plans, conventions, and playbooks in one local system.
 
 But the underlying principle is more important than the product:
 
