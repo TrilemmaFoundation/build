@@ -79,12 +79,6 @@ const plugins: PluginConfig[] = [
     },
   ],
   authorPagesPlugin,
-  [
-    '@docusaurus/plugin-vercel-analytics',
-    {
-      mode: 'auto',
-    },
-  ],
 ];
 
 const config: Config = {
@@ -193,10 +187,8 @@ const config: Config = {
     ],
   ],
   plugins,
-
-  stylesheets: [
-    {href: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap', type: 'text/css'},
-  ],
+  clientModules: ['./src/client/vercelAnalytics.ts'],
+  stylesheets: [],
   themeConfig: {
     prism: { theme: codeTheme, darkTheme: codeTheme },
     colorMode: {

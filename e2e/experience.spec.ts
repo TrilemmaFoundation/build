@@ -6,32 +6,30 @@ declare global {
   interface Window { fontPolicyViolations: string[] }
 }
 
-test('production CSP permits the configured font stylesheet and font files', async ({ page }) => {
+test('production CSP self-hosts fonts and permits Vercel Analytics', async ({ page }) => {
   const deployment = JSON.parse(readFileSync('vercel.json', 'utf8'));
   const csp = deployment.headers[0].headers.find((header: {key: string; value: string}) => header.key === 'Content-Security-Policy').value;
+  expect(csp).toContain("font-src 'self'");
+  expect(csp).not.toContain('fonts.googleapis.com');
+  expect(csp).not.toContain('fonts.gstatic.com');
+  expect(csp).toContain('va.vercel-scripts.com');
+  expect(csp).toContain('vitals.vercel-insights.com');
   await page.addInitScript(() => {
     window.fontPolicyViolations = [];
     document.addEventListener('securitypolicyviolation', event => {
       window.fontPolicyViolations.push(event.blockedURI);
     });
   });
-  await page.route('https://fonts.googleapis.com/**', route => route.fulfill({
-    contentType: 'text/css', body: 'body { --audit-font-stylesheet: loaded; }',
-  }));
-  let fontRequested = false;
-  await page.route('https://fonts.gstatic.com/audit.woff2', route => {
-    fontRequested = true;
-    return route.fulfill({status: 404, headers: {'access-control-allow-origin': '*'}});
-  });
   await page.route('http://127.0.0.1:43918/', async route => {
     const response = await route.fetch();
     await route.fulfill({response, headers: {...response.headers(), 'content-security-policy': csp}});
   });
   await page.goto('/');
-  await expect(page.locator('body')).toHaveCSS('--audit-font-stylesheet', 'loaded');
-  // A mocked 404 is enough: the browser must permit the request before decoding a font.
-  await page.evaluate(() => new FontFace('Audit', 'url(https://fonts.gstatic.com/audit.woff2)').load().catch(() => {}));
-  expect(fontRequested).toBe(true);
+  const robotoLoaded = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return [...document.fonts].some(font => font.family.toLowerCase().includes('roboto'));
+  });
+  expect(robotoLoaded).toBe(true);
   expect(await page.evaluate(() => window.fontPolicyViolations)).toEqual([]);
 });
 

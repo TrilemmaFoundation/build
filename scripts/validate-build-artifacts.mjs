@@ -11,7 +11,7 @@ export const OG_URL_SAMPLE_PAGE =
 /** Hashed or unhashed local-search index emitted into `build/`. */
 export const SEARCH_INDEX_BASENAME = /^search-index.*\.json$/;
 
-/** Production script path injected by `@docusaurus/plugin-vercel-analytics`. */
+/** Production script path injected by `@vercel/analytics`. */
 export const VERCEL_ANALYTICS_SCRIPT_SRC = '/_vercel/insights/script.js';
 
 function walkFiles(directory) {

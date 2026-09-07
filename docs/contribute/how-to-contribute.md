@@ -22,7 +22,9 @@ version pinned in `.nvmrc`, then install the locked dependency tree with
    `content_kind`) also require `authors` with registered IDs from
    `src/data/authors.json`.
 3. Run `npm run check` and `npm run test:coverage` locally. `check` already includes typecheck, validators, tests, and the production build.
-4. Open a PR and complete the checklist.
+4. Open a PR and complete the checklist. GitHub processes pull requests, issues,
+   and profile data under GitHub’s policies; you leave Trilemma Foundation
+   websites when you open GitHub.
 5. Committee members review, request changes if needed, and merge.
 
 Frontmatter is parsed as full YAML, so quoted and multiline values, lists,
