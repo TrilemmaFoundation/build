@@ -55,7 +55,7 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "babel-jest": "^30.4.1",
-    "cspell": "^10.0.1",
+    "cspell": "^10.2.2",
     "husky": "^9.1.7",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.4.2",
