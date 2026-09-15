@@ -20,6 +20,13 @@ just because the skill was invoked again.
 - If `pad` is missing, ask the user to install it or add it to PATH.
 - If bootstrap fails, run `pad agent guide context-loading` and follow that
   section. Never initialize authentication blindly.
+- In Codex, keep `pad` as a direct command. Shell redirection such as
+  `< file` can prevent a narrow Pad execution rule from matching. For
+  `--stdin`, stream the body through the process's stdin; if the harness
+  cannot do that, request narrowly scoped permission to run Pad with loopback access.
+- An underlying `operation not permitted` means the health probe was
+  sandbox-blocked, not that Pad is down. Retry the same direct command with loopback
+  permission, and do not repeat an ambiguous write until its result is checked.
 - Follow every body in `conventions`. Before meaningful work, inspect
   `convention_index` and load bodies for the matching trigger.
 - If `needs_onboarding` is true, offer setup and wait for consent.
