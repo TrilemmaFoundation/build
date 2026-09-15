@@ -64,6 +64,13 @@
                 "description": "Chat is an interface; a ticket is a unit of work. Move agentic development from conversation history into bounded tickets that preserve intent.",
                 "docId": "playbook/build/from-chat-to-tickets",
                 "to": "/docs/playbook/build/from-chat-to-tickets"
+              },
+              {
+                "id": "release",
+                "title": "Release Guide",
+                "description": "The checklist for releasing microproducts that informs prior phases of development.",
+                "docId": "playbook/build/release",
+                "to": "/docs/playbook/build/release"
               }
             ]
           },
