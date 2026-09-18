@@ -31,7 +31,7 @@ describe('human playbook data', () => {
         label: 'Build',
         collapsed: false,
         collapsible: false,
-        items: ['playbook/build/build', 'playbook/build/from-chat-to-tickets'],
+        items: ['playbook/build/build', 'playbook/build/from-chat-to-tickets', 'playbook/build/release'],
       },
       {
         type: 'category',
@@ -70,7 +70,7 @@ describe('human playbook data', () => {
         label: 'Build',
         collapsed: false,
         collapsible: false,
-        items: ['human/playbook/build/build', 'human/playbook/build/from-chat-to-tickets'],
+        items: ['human/playbook/build/build', 'human/playbook/build/from-chat-to-tickets', 'human/playbook/build/release'],
       },
       {
         type: 'category',
