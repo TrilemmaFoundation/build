@@ -1,16 +1,16 @@
 ---
 title: "Release Guide"
 sidebar_label: Release
-description: "The checklist for releasing microproducts that informs prior phases of development."
+description: "A decision framework for releasing microproducts that informs prior phases of development."
 slug: /playbook/build/release
 tags: [playbook, build]
-last_reviewed: 2026-09-10
+last_reviewed: 2026-09-18
 authors: [rowan-lindsay]
 ---
 
 The purpose of microproduct development and iteration is to bring value to users, which means making technology accessible.
 At a high level, releasing means putting something new into the world or changing something that already exists.
-Releases can be small or large depending on factors such as changed LOC, potential impact and exposure. Even a single-line change is considered a 'large' release if it's potential impacts are great.
+Releases can be small or large depending on factors such as changed LOC, potential impact and exposure. Even a single-line change is considered a 'large' release if its potential impacts are great.
 
 Releasing software is scary and potentially complex. Any number of things could go wrong once the changes are out there or during the release process itself.
 Like many topics covered in the playbook, entire books could (and have) been written about it, and managing releases can be a full-time job. We won't try to simplify or downplay that here.
@@ -22,7 +22,7 @@ A release decision determines whether a release candidate will be made accessibl
 Explicit release decisions should always be made, no matter how large or small a release is. For large companies, this provides audit guarantees in case something goes wrong.
 For any sized team, including individual builders, the decision making process ensures that all key components are accounted for.
 
-Release decisions may or not be automated, but they should always be systematized. A release system and decision making algorithm allows for maximum coverage in the current iteration, while serving as a basis for improvement. Whether or not all parts of the checklist are included in your CI/CD, treat it like you would a script in your codebase.
+Release decisions may or may not be automated, but they should always be systematized. A release system and decision making algorithm allows for maximum coverage in the current iteration, while serving as a basis for improvement. Whether or not all parts of the checklist are included in your CI/CD, treat it like you would a script in your codebase.
 
 > Term - **Release Candidate** (RC):
 > A snapshot of source code - including static configuration files and deployment scripts - being evaluated for release. Usually a tagged commit.
@@ -38,7 +38,7 @@ Whether you are prepping for a demo, gearing up for a public launch, or shipping
 running scripts to manipulate data where appropriate. Adding/modifying (or removing) a feature is considered an impact. Making a website exist on
 a domain that did not exist before is also an impact. So is fixing a bug.
 
-Put simply, always consider: 1) What you have built - is it build correctly? 2) did you build the right thing, and is now the time to put it out into the world?
+Put simply, always consider: 1) What you have built - is it built correctly? 2) Did you build the right thing, and is now the time to put it out into the world?
 
 The following sections expand more on these central pillars.
 
@@ -49,7 +49,7 @@ Deciding *when* to do a release seems simple at first - after all, shouldn't pro
 
 - **Release Cycles**: Some teams have a specific cadence or days/times they deploy. Users may be accustomed to a particular cadence.
 
-- **Internal Preparedness**: Are the product and/or its operators ready for exposure and usage? Evaluate the cost and legal implications of a product going public. Ensure appropriate control over exposure using tools like Feature Flags, Authentication and Authorization rules, networking restrictions (whitelists, firewalls) and other security measures depending on the risks.
+- **Internal Preparedness**: Are the product and/or its operators ready for exposure and usage? Evaluate the cost and legal implications of a product going public. Ensure appropriate control over exposure using tools like Feature Flags, Authentication and Authorization rules, networking restrictions (allowlists, firewalls) and other security measures depending on the risks.
 
 - **Dependency coordination**: If you are depending on the availability of features or infrastructure shipped by other teams, make sure the timelines match up and there are backup plans in place.
 

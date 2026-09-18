@@ -68,7 +68,7 @@
               {
                 "id": "release",
                 "title": "Release Guide",
-                "description": "The checklist for releasing microproducts that informs prior phases of development.",
+                "description": "A decision framework for releasing microproducts that informs prior phases of development.",
                 "docId": "playbook/build/release",
                 "to": "/docs/playbook/build/release"
               }
