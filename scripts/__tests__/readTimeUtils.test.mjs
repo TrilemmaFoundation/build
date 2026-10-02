@@ -57,6 +57,15 @@ test('reading time counts indented prose according to native MDX', async () => {
   assert.equal(calculateReadMinutes(content), 2);
 });
 
+test('reading time retains prose around code with CR, CRLF, LF and mixed endings', () => {
+  const lines = ['Before', '', '```jsx', '<Literal />', '```', '', 'After <Display /> prose.'];
+  for (const endings of [['\n'], ['\r\n'], ['\r'], ['\r', '\r\n', '\n']]) {
+    const source = lines.map((line, index) =>
+      line + (index === lines.length - 1 ? '' : endings[index % endings.length])).join('');
+    assert.equal(countReadableWords(source), 3);
+  }
+});
+
 test('countReadableWords ignores markdown link targets', () => {
   assert.equal(countReadableWords('[Read docs](https://example.com) now'), 3);
 });

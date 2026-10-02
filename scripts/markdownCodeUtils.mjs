@@ -22,9 +22,10 @@ export function markdownCodeRanges(text) {
       const inline = node.type === 'inlineCode';
       if (!inline) {
         // Include indentation, container markers, and the closing line ending.
-        start = text.slice(0, start).lastIndexOf('\n') + 1;
-        const newline = text.indexOf('\n', end);
-        end = newline === -1 ? text.length : newline + 1;
+        const prefix = text.slice(0, start);
+        start = Math.max(prefix.lastIndexOf('\r'), prefix.lastIndexOf('\n')) + 1;
+        const newline = /\r\n?|\n/.exec(text.slice(end));
+        end = newline ? end + newline.index + newline[0].length : text.length;
       }
       ranges.push({start, end, inline});
       return;

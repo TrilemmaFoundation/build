@@ -48,7 +48,8 @@ Titles and navigation labels remain plain text in generated links, including
 literal brackets, backslashes, and formatting punctuation.
 
 Mirrors retain literal inline code and code blocks, including blocks inside
-lists and block quotes. Reading-time estimates exclude code blocks, whether
+lists and block quotes. Code blocks retain their original line endings.
+Reading-time estimates exclude code blocks, whether
 they use backticks or tildes. Indented prose remains readable text under MDX.
 
 Set `useDescriptionAsSubtitle: true` as a YAML boolean to show the document's

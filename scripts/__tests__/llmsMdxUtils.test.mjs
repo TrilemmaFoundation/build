@@ -52,6 +52,23 @@ describe('llmsMdxUtils', () => {
     assert.equal(stripMdxForPlainText('Escaped \\`tick <Display />.'), 'Escaped \\`tick .');
   });
 
+  it('keeps native code boundaries separate from prose for every line ending', async () => {
+    const lines = ['Before', '', '```jsx', '<Literal />', '```', '', 'After <Display /> prose.'];
+    for (const endings of [['\n'], ['\r\n'], ['\r'], ['\r', '\r\n', '\n']]) {
+      const source = lines.map((line, index) =>
+        line + (index === lines.length - 1 ? '' : endings[index % endings.length])).join('');
+      assert.match(String(await compile(source)), /code: "code"/);
+      assert.equal(stripMdxForPlainText(source), source.replace('<Display />', ''));
+    }
+    for (const source of [
+      'Before\r\r> ~~~jsx\r> <Literal />\r> ~~~\r\rAfter <Display /> prose.',
+      '~~~jsx\r<Literal />\r~~~',
+      '~~~jsx\r<Literal />\r~~~\r',
+    ]) {
+      assert.equal(stripMdxForPlainText(source), source.replace('<Display />', ''));
+    }
+  });
+
   it('preserves alternative fences, indentation, longer closers, and unclosed code', () => {
     for (const code of [
       '~~~jsx\n<Widget />\n~~~',
