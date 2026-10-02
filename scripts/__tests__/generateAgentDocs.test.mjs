@@ -5,6 +5,8 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {afterEach, describe, it} from 'node:test';
 import {toSidebarDocItemLinkProp} from '@docusaurus/plugin-content-docs/lib/props.js';
+import slugModule from '@docusaurus/plugin-content-docs/lib/slug.js';
+import {fromMarkdown} from 'mdast-util-from-markdown';
 
 import {
   agentSlugFromHumanTo,
@@ -17,7 +19,7 @@ import {
   sectionFromDocId,
 } from '../agentDocsUtils.mjs';
 import {generateAgentDocs} from '../generate-agent-docs.mjs';
-import {stripFrontmatterAndMdxForLlms} from '../llmsMdxUtils.mjs';
+import {stripFrontmatterAndMdxForLlms, stripYamlFrontmatter} from '../llmsMdxUtils.mjs';
 import {flattenPlaybookNodes} from '../playbookTreeUtils.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -31,7 +33,49 @@ function writeFile(root, filePath, content) {
   fs.writeFileSync(fullPath, content, 'utf8');
 }
 
+function markdownLinks(markdown) {
+  const links = [];
+  function visit(node) {
+    if (node.type === 'link') {
+      links.push({url: node.url, label: node.children.map((child) => child.value).join(''), types: node.children.map((child) => child.type)});
+    }
+    for (const child of node.children ?? []) visit(child);
+  }
+  visit(fromMarkdown(markdown));
+  return links;
+}
+
 describe('agentDocsUtils', () => {
+  it('keeps mirror and overview routes aligned with native Docusaurus relative slugs', () => {
+    const getSlug = slugModule.default;
+    for (const [docId, sourceSlug] of [
+      ['playbook/frame/topic', 'topic'],
+      ['playbook/frame/topic', '../other/topic'],
+      ['playbook/frame/topic', '/playbook/frame/topic'],
+      ['index', '/'],
+      ['playbook/frame/topic', undefined],
+    ]) {
+      const source = `${docId}.md`;
+      const nativeSlug = (file, slug) => getSlug({baseID: path.posix.basename(docId), source: file, sourceDirName: path.posix.dirname(file), frontMatterSlug: slug, stripDirNumberPrefixes: false});
+      const humanPath = `/docs${nativeSlug(source, sourceSlug)}`;
+      const node = {id: 'topic', title: 'Topic', description: 'Example', docId, to: humanPath};
+      const metadata = metadataFromNode(`---\ntitle: Topic\n${sourceSlug === undefined ? '' : `slug: ${sourceSlug}\n`}---\nBody`, node);
+      const mirrorPath = `/agents${nativeSlug(`human/${source}`, metadata.slug)}`;
+      assert.equal(mirrorPath, humanPath.replace(/^\/docs/, '/agents'));
+      assert.equal(markdownLinks(renderAgentMirrorOverview([node]))[0].url, mirrorPath);
+    }
+  });
+
+  it('renders punctuation and entities as plain link labels in mirrors and the overview', () => {
+    for (const title of ['Use ] in patterns', 'A [label] with \\path', 'Literal *emphasis*, `code`, <Widget /> &amp;', 'Multiline\nTitle\r\nnext']) {
+      const node = {id: 'example', title, description: 'Example', docId: 'example', to: '/docs/example'};
+      const output = buildAgentMirrorDocument('Body', metadataFromNode('Body', node));
+      const label = title.replace(/\r?\n/g, ' ');
+      assert.deepEqual(markdownLinks(stripYamlFrontmatter(output)), [{url: '/docs/example', label, types: ['text']}]);
+      assert.deepEqual(markdownLinks(renderAgentMirrorOverview([node])), [{url: '/agents/example', label, types: ['text']}]);
+    }
+  });
+
   it('derives sections and agent slugs from human routes', () => {
     assert.equal(sectionFromDocId('playbook/frame/frame'), 'frame');
     assert.equal(sectionFromDocId('playbook/build/build'), 'build');
@@ -175,9 +219,11 @@ Body
       {id: 'id-only'},
     ].map((node) => ({...node, description: 'Fallback', docId: node.id, to: `/docs/${node.id}`}));
     const overview = renderAgentMirrorOverview(nodes);
-    assert.match(overview, /\[JSON navigation\]\(\/agents\/json-label\)/);
-    assert.match(overview, /\[JSON fallback title\]\(\/agents\/json-title\)/);
-    assert.match(overview, /\[id-only\]\(\/agents\/id-only\)/);
+    assert.deepEqual(markdownLinks(overview), [
+      {url: '/agents/json-label', label: 'JSON navigation', types: ['text']},
+      {url: '/agents/json-title', label: 'JSON fallback title', types: ['text']},
+      {url: '/agents/id-only', label: 'id-only', types: ['text']},
+    ]);
     const categoryOverview = renderAgentMirrorOverview([{
       id: 'category', title: 'JSON category heading', sidebarLabel: 'Document-only override',
       description: 'Category', children: nodes,
@@ -379,7 +425,7 @@ slug: /playbook/another
       assert.equal(mirror.useDescriptionAsSubtitle, undefined);
       assert.equal(humanLink.label, entry.expectedLabel);
       assert.equal(mirrorLink.label, humanLink.label);
-      assert.ok(overview.includes(`[${humanLink.label}](/agents/${entry.id})`), overview);
+      assert.equal(markdownLinks(overview).find((link) => link.url === `/agents/${entry.id}`).label, humanLink.label);
       assert.doesNotMatch(overview, /undefined|Stale JSON title/);
     }
   });

@@ -25,6 +25,7 @@ export default function AuthorPage({author}: Props): ReactNode {
               href={author.url}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Visit website (opens in a new tab)"
             >
               Visit website
             </a>

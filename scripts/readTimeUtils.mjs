@@ -2,15 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {stripFrontmatter as stripFrontmatterBody} from './frontmatterUtils.mjs';
+import {markdownCodeRanges} from './markdownCodeUtils.mjs';
 
 const WORDS_PER_MINUTE = 225;
 
 export function stripMdxBoilerplate(content) {
+  for (const {start, end} of markdownCodeRanges(content).filter((range) => !range.inline).reverse()) {
+    content = `${content.slice(0, start)}\n${content.slice(end)}`;
+  }
   return content
     .replace(/^import\s.+?;?\s*$/gm, '')
     .replace(/^export\s.+?;?\s*$/gm, '')
     .replace(/<[^>\n]+>/g, ' ')
-    .replace(/```[\s\S]*?```/g, ' ')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/[#>*_~|[\]{}()]/g, ' ');

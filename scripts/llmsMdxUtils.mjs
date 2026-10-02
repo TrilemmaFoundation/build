@@ -3,37 +3,39 @@
  */
 
 import {stripFrontmatter as stripFrontmatterBody} from './frontmatterUtils.mjs';
+import {markdownCodeRanges} from './markdownCodeUtils.mjs';
 
 /** Strip display JSX from prose while preserving fenced code byte-for-byte. */
 export function stripMdxForPlainText(text) {
+  const ranges = markdownCodeRanges(text);
+  const inlineRanges = ranges.filter((range) => range.inline);
   const segments = [];
-  let prose = '';
-  let fence = '';
-  for (const line of text.split(/(?<=\n)/)) {
-    if (fence) {
-      segments.push(line);
-      const closing = line.match(/^ {0,3}(`+|~+)[ \t]*\r?\n?$/);
-      if (closing && closing[1][0] === fence[0] && closing[1].length >= fence.length) {
-        fence = '';
-      }
-    } else {
-      const opening = line.match(/^ {0,3}(`{3,}|~{3,})([^\r\n]*)/);
-      if (opening && !(opening[1][0] === '`' && opening[2].includes('`'))) {
-        const cleaned = stripJsxFromProse(prose).replace(/\n{3,}/g, '\n\n');
-        segments.push(segments.length ? cleaned : cleaned.trimStart(), line);
-        prose = '';
-        fence = opening[1];
-      } else {
-        prose += line;
-      }
-    }
+  let offset = 0;
+  for (const {start, end, inline} of ranges) {
+    if (inline) continue;
+    const cleaned = stripJsxFromProse(text.slice(offset, start), inlineRanges, offset)
+      .replace(/\n{3,}/g, '\n\n');
+    segments.push(segments.length ? cleaned : cleaned.trimStart(), text.slice(start, end));
+    offset = end;
   }
-  const tail = stripJsxFromProse(prose).replace(/\n{3,}/g, '\n\n').trimEnd();
+  const tail = stripJsxFromProse(text.slice(offset), inlineRanges, offset)
+    .replace(/\n{3,}/g, '\n\n').trimEnd();
   segments.push(segments.length ? tail : tail.trimStart());
   return segments.join('');
 }
 
-function stripJsxFromProse(text) {
+function stripJsxFromProse(text, inlineRanges, offset) {
+  // Mask inline literals so paired display components can still be removed whole.
+  let marker = '\uE000';
+  while (text.includes(marker)) marker += '\uE000';
+  const literals = [];
+  for (const range of inlineRanges.filter((range) =>
+    range.start >= offset && range.end <= offset + text.length).reverse()) {
+    const start = range.start - offset;
+    const end = range.end - offset;
+    literals.push(text.slice(start, end));
+    text = `${text.slice(0, start)}${marker}${literals.length - 1}${marker}${text.slice(end)}`;
+  }
   let out = text
     // Whole-line MDX imports only (do not eat instructional prose after the specifier).
     .replace(/^import\s[\s\S]*?\sfrom\s+['"][^'"]+['"];?\s*$/gm, '')
@@ -50,10 +52,11 @@ function stripJsxFromProse(text) {
     out = next;
   }
 
-  return out.replace(
+  out = out.replace(
     /<(?:ul|ol|div|span|section|article)\b[^>]*>[\s\S]*?<\/(?:ul|ol|div|span|section|article)>/gi,
     (block) => (block.includes('{') ? '' : block),
   );
+  return out.replace(new RegExp(`${marker}(\\d+)${marker}`, 'g'), (_, index) => literals[Number(index)]);
 }
 
 export function stripYamlFrontmatter(text) {

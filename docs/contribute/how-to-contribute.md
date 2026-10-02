@@ -42,6 +42,15 @@ Human navigation, generated mirror metadata, and mirror overview links use the
 source label, then JSON label, then canonical document title. LLM bundle headings
 use a nonempty source title, then the legacy JSON title, then the node ID.
 
+Keep the tree's `to` field aligned with the human page's canonical URL. Generated
+mirror URLs follow that route even when frontmatter uses a relative `slug`.
+Titles and navigation labels remain plain text in generated links, including
+literal brackets, backslashes, and formatting punctuation.
+
+Mirrors retain literal inline code and code blocks, including blocks inside
+lists and block quotes. Reading-time estimates exclude code blocks, whether
+they use backticks or tildes. Indented prose remains readable text under MDX.
+
 Set `useDescriptionAsSubtitle: true` as a YAML boolean to show the document's
 trimmed description beneath its generated title. The default and `false` hide
 it; string and null values fail validation. Missing, empty, or whitespace-only
@@ -64,6 +73,7 @@ Each registered author receives a native `/authors/<id>` page. Add an optional
 plain-text `bio` to the author record when approved profile copy is available;
 the page lists every public canonical doc that explicitly names that author,
 ordered by `last_reviewed`.
+Profile website links announce that they open in a new tab.
 
 Starter `product.yaml` files are validated against the public product schema
 and must select an archetype documented in the catalog. Every registry product

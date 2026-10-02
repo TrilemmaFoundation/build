@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import {compile} from '@mdx-js/mdx';
 
 import {
   stripFrontmatterAndMdxForLlms,
@@ -8,6 +9,49 @@ import {
 } from '../llmsMdxUtils.mjs';
 
 describe('llmsMdxUtils', () => {
+  it('preserves literal JSX in inline code and nested code blocks', () => {
+    for (const source of [
+      'Use `<Widget />` to render the chart.',
+      'Use ``<Widget prop={`value`} />`` with a literal backtick.',
+      '> ```jsx\n> <Widget />\n> ```',
+      '> > ~~~jsx\r\n> > <Widget />\r\n> > ~~~~  \r\n',
+      '- Example:\n\n  ```jsx\n  <Widget />\n  ```',
+      '> - Example:\n>\n>   ~~~jsx\n>   <Widget />\n>   ~~~',
+      '\uE000\uE0000\uE000\uE000 Use `<Widget />` literally.',
+    ]) {
+      assert.equal(stripMdxForPlainText(source), source);
+    }
+  });
+
+  it('preserves native MDX code inside HTML containers and removes indented display JSX', async () => {
+    for (const source of [
+      '<div>\nUse `<Widget />` literally.\n</div>',
+      '<div>\nUse `<Token />`.\n~~~jsx\n<Widget />\n~~~\nUse `<Other />`.\n</div>',
+      '<div>\r\n~~~jsx\r\n<Widget />\r\n~~~\r\n</div>',
+    ]) {
+      assert.match(String(await compile(source)), /code: "code"/);
+      assert.equal(stripMdxForPlainText(source), source);
+    }
+    const indented = '    <Widget />\n';
+    assert.match(String(await compile(indented)), /_jsx\(Widget, \{\}\)/);
+    assert.equal(stripMdxForPlainText(indented), '');
+    // Existing fence preservation also retains component delimiters spanning code.
+    const wrapped = '<Card>\n\n```jsx\n<Widget />\n```\n\n</Card>';
+    assert.equal(stripMdxForPlainText(wrapped), wrapped);
+  });
+
+  it('removes real display JSX around inline code and after an unclosed quote fence', () => {
+    assert.equal(
+      stripMdxForPlainText('<Widget>Use `literal` here</Widget>\n\nKeep `<Token />`.'),
+      'Keep `<Token />`.',
+    );
+    assert.equal(
+      stripMdxForPlainText('> ~~~jsx\n> <Literal />\n\nOutside <Display /> prose.'),
+      '> ~~~jsx\n> <Literal />\n\nOutside  prose.',
+    );
+    assert.equal(stripMdxForPlainText('Escaped \\`tick <Display />.'), 'Escaped \\`tick .');
+  });
+
   it('preserves alternative fences, indentation, longer closers, and unclosed code', () => {
     for (const code of [
       '~~~jsx\n<Widget />\n~~~',

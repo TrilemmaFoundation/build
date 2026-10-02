@@ -100,7 +100,7 @@ export function buildAgentMirrorDocument(sourceText, metadata) {
     {lineWidth: -1, noRefs: true, schema: JSON_SCHEMA},
   ).trimEnd();
 
-  const preamble = `> **Agent-first mirror** of [${metadata.title}](${metadata.canonicalHumanUrl}). Prose is identical; MDX interactive elements removed.\n\n`;
+  const preamble = `> **Agent-first mirror** of [${escapeMarkdownLabel(metadata.title)}](${metadata.canonicalHumanUrl}). Prose is identical; MDX interactive elements removed.\n\n`;
 
   return `---\n${frontmatter}\n---\n\n${preamble}${body}\n`;
 }
@@ -123,10 +123,7 @@ export function metadataFromNode(sourceText, node) {
     typeof parsed.sidebar_label === 'string' ? parsed.sidebar_label : node.sidebarLabel;
   const description =
     typeof parsed.description === 'string' ? parsed.description : node.description;
-  const slug =
-    typeof parsed.slug === 'string'
-      ? parsed.slug
-      : agentSlugFromHumanTo(node.to);
+  const slug = agentSlugFromHumanTo(node.to);
 
   return {
     title,
@@ -200,7 +197,7 @@ function appendOverviewNode(lines, node, depth, excludedDocIds, documentTitles) 
   if (listed) {
     const slug = agentSlugFromHumanTo(node.to);
     const indent = '  '.repeat(depth);
-    lines.push(`${indent}- [${title}](/agents${slug}) — ${node.description}`);
+    lines.push(`${indent}- [${escapeMarkdownLabel(title)}](/agents${slug}) — ${node.description}`);
   }
 
   if (node.children?.length) {
@@ -220,4 +217,9 @@ function appendOverviewNode(lines, node, depth, excludedDocIds, documentTitles) 
       );
     }
   }
+}
+
+function escapeMarkdownLabel(text) {
+  // CommonMark permits escaping any ASCII punctuation inside a link label.
+  return text.replace(/\r\n?|\n/g, ' ').replace(/[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]/g, '\\$&');
 }

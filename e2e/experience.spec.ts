@@ -51,6 +51,23 @@ test('author catalog links every registry author to a native profile', async ({ 
   await expect(page.getByRole('heading', {level: 1, name: authors[0].name, exact: true})).toBeVisible();
 });
 
+test('author websites announce a new tab and mirror links are visually distinct', async ({ page }) => {
+  await page.goto('/authors/rowan-lindsay');
+  const website = page.getByRole('link', {name: 'Visit website (opens in a new tab)', exact: true});
+  await expect(website).toBeVisible();
+  await expect(website).toHaveAttribute('target', '_blank');
+  await expect(website).toHaveAttribute('rel', 'noopener noreferrer');
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({width, height: 844});
+    await page.goto('/agents/playbook/build');
+    const canonical = page.locator('.theme-doc-markdown blockquote').first().getByRole('link');
+    await expect(canonical).toHaveAttribute('href', '/docs/playbook/build');
+    await expect.poll(() => canonical.evaluate((link) => getComputedStyle(link).textDecorationLine)).toContain('underline');
+    const result = await new AxeBuilder({page}).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(result.violations).toEqual([]);
+  }
+});
+
 test('Quality-First titles, subtitles, and sidebar labels agree across human and mirror pages', async ({ page }) => {
   const source = parseSourceFrontmatter(readFileSync('docs/human/playbook/frame/quality-first.md', 'utf8')) as {title: string; description: string; sidebar_label?: string};
   const tree = JSON.parse(readFileSync('src/data/humanPlaybook.data.json', 'utf8'));

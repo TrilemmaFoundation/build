@@ -36,7 +36,8 @@ describe('AuthorPage', () => {
       'articles-heading',
     );
     expect(screen.getByText('Writes about computing.')).toBeInTheDocument();
-    const website = screen.getByRole('link', {name: 'Visit website'});
+    const website = screen.getByRole('link', {name: 'Visit website (opens in a new tab)'});
+    expect(website).toHaveTextContent('Visit website');
     expect(website).toHaveAttribute('href', 'https://example.com/ada');
     expect(website).toHaveAttribute('target', '_blank');
     expect(website).toHaveAttribute('rel', 'noopener noreferrer');
@@ -62,7 +63,7 @@ describe('AuthorPage', () => {
     expect(screen.getByText('All articles by Empty Author')).toBeInTheDocument();
     expect(screen.getByText('This author has no published articles yet.')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', {name: 'Visit website'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', {name: /Visit website/})).not.toBeInTheDocument();
   });
 
   it('renders a bio without a website and a website without a bio', () => {
@@ -79,7 +80,7 @@ describe('AuthorPage', () => {
 
     expect(screen.getByTestId('layout')).toHaveAttribute('data-description', 'Just a biography.');
     expect(screen.getByText('Just a biography.')).toBeInTheDocument();
-    expect(screen.queryByRole('link', {name: 'Visit website'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', {name: /Visit website/})).not.toBeInTheDocument();
     unmount();
 
     render(
@@ -98,7 +99,7 @@ describe('AuthorPage', () => {
       'Articles by URL Only.',
     );
     expect(screen.queryByText('Just a biography.')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', {name: 'Visit website'})).toHaveAttribute(
+    expect(screen.getByRole('link', {name: 'Visit website (opens in a new tab)'})).toHaveAttribute(
       'href',
       'https://example.com/url-only',
     );
