@@ -20,7 +20,7 @@
     "spellcheck": "cspell \"docs/**\" \"product-templates/**\" \"templates/**/*.md\"",
     "check:validate": "npm run check:design && npm run typecheck && npm run spellcheck && npm run validate:frontmatter && npm run validate:registry && npm run validate:playbook && npm run lint:markdown",
     "check:fast": "npm run check:validate && npm test",
-    "check": "npm run check:fast && npm run build",
+    "check": "npm run check:validate && npm run test:coverage && npm run build",
     "check:ci": "npm run check:validate && npm run build",
     "test:scripts": "node --test scripts/__tests__/*.test.mjs",
     "test:scripts:coverage": "node --test --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 --test-coverage-include='scripts/*.mjs' --test-coverage-exclude=scripts/clear-dev-cache.mjs --test-coverage-exclude=scripts/generate-llms-full.mjs scripts/__tests__/*.test.mjs",

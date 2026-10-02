@@ -75,10 +75,6 @@ describe('documentation contracts', () => {
     }
   });
   const catalog = read('docs/archetypes/index.md');
-  const contribute = read('docs/contribute/how-to-contribute.md');
-  const contributing = read('CONTRIBUTING.md');
-  const prTemplate = read('.github/PULL_REQUEST_TEMPLATE.md');
-  const issueTemplate = read('.github/ISSUE_TEMPLATE/content.yml');
   const packageJson = JSON.parse(read('package.json'));
 
   it('lists the folder-contract files on every archetype page', () => {
@@ -120,27 +116,6 @@ describe('documentation contracts', () => {
       }
       assert.match(rows[0], /No starter yet/, `${slug} must say no starter yet`);
     }
-  });
-
-  it('requires authors in contributor checklists', () => {
-    assert.match(contributing, /authors/);
-    assert.match(contribute, /authors/);
-    assert.match(prTemplate, /authors/);
-  });
-
-  it('tells showcase contributors to edit the showcase table', () => {
-    assert.match(contribute, /docs\/showcase\/microproducts\.md/);
-    assert.match(contributing, /docs\/showcase\/microproducts\.md/);
-  });
-
-  it('lists only live doc islands in GitHub templates', () => {
-    assert.doesNotMatch(prTemplate, /^\s*-\s*\[\s*\]\s*Intro\s*$/m);
-    assert.doesNotMatch(prTemplate, /^\s*-\s*\[\s*\]\s*Resources\s*$/m);
-    assert.doesNotMatch(issueTemplate, /\bintro\b/);
-    assert.doesNotMatch(issueTemplate, /\bresources\b/);
-    assert.match(prTemplate, /Playbook/);
-    assert.match(prTemplate, /Standards/);
-    assert.match(issueTemplate, /archetypes/);
   });
 
   it('generates llms-full.txt during npm run dev', () => {

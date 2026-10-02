@@ -3,83 +3,77 @@ import {
   buildHumanPlaybookSidebar,
   humanPlaybookTree,
 } from '../humanPlaybook';
+import type {GeneratedSidebarItem, PlaybookTreeNode} from '../humanPlaybook';
 import {flattenPlaybookNodes} from '../../utils/playbookTree';
 
 describe('human playbook data', () => {
-  it('generates the canonical sidebar hierarchy', () => {
-    expect(buildHumanPlaybookSidebar()).toEqual([
+  const fixture: PlaybookTreeNode = {
+    id: 'root', title: 'Root', description: 'Root', docId: 'root',
+    children: [
+      {id: 'about', title: 'About document', description: 'About', docId: 'about'},
       {
-        type: 'category',
-        label: 'About',
-        collapsible: false,
-        items: ['request-for-microproducts', 'authors'],
+        id: 'playbook', title: 'Playbook', description: 'Playbook',
+        children: [
+          {
+            id: 'plan', title: 'Plan', description: 'Plan',
+            children: [
+              {id: 'intro', title: 'Intro', description: 'Intro', docId: 'plan/intro'},
+              {
+                id: 'nested', title: 'Nested', description: 'Nested',
+                children: [
+                  {id: 'detail', title: 'Detail', description: 'Detail', docId: 'plan/detail'},
+                ],
+              },
+            ],
+          },
+          {
+            id: 'build', title: 'Build', description: 'Build',
+            children: [
+              {id: 'release', title: 'Release', description: 'Release', docId: 'build/release'},
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  it.each([
+    {name: 'human', buildSidebar: buildHumanPlaybookSidebar, prefix: '', leading: []},
+    {name: 'agent', buildSidebar: buildAgentPlaybookSidebar, prefix: 'human/', leading: ['index', 'human/index']},
+  ])('generates the $name sidebar hierarchy from a fixture', ({buildSidebar, prefix, leading}) => {
+    expect(buildSidebar(fixture)).toEqual([
+      ...leading,
+      {
+        type: 'category', label: 'About', collapsible: false,
+        items: [`${prefix}root`, `${prefix}about`],
       },
       {
-        type: 'category',
-        label: 'Plan',
-        collapsed: false,
-        collapsible: false,
+        type: 'category', label: 'Plan', collapsed: false, collapsible: false,
         items: [
-          'playbook/frame/frame',
-          'playbook/frame/data-licensing',
-          'playbook/frame/modern-data-stack',
-          'playbook/frame/quality-first',
+          `${prefix}plan/intro`,
+          {
+            type: 'category', label: 'Nested', collapsed: false, collapsible: undefined,
+            items: [`${prefix}plan/detail`],
+          },
         ],
       },
       {
-        type: 'category',
-        label: 'Build',
-        collapsed: false,
-        collapsible: false,
-        items: ['playbook/build/build', 'playbook/build/from-chat-to-tickets', 'playbook/build/release'],
-      },
-      {
-        type: 'category',
-        label: 'Operate',
-        collapsed: false,
-        collapsible: false,
-        items: ['playbook/operate/operate', 'playbook/operate/microproduct-deployment'],
+        type: 'category', label: 'Build', collapsed: false, collapsible: false,
+        items: [`${prefix}build/release`],
       },
     ]);
   });
 
-  it('generates the agent mirror sidebar hierarchy', () => {
-    expect(buildAgentPlaybookSidebar()).toEqual([
-      'index',
-      'human/index',
-      {
-        type: 'category',
-        label: 'About',
-        collapsible: false,
-        items: ['human/request-for-microproducts', 'human/authors'],
-      },
-      {
-        type: 'category',
-        label: 'Plan',
-        collapsed: false,
-        collapsible: false,
-        items: [
-          'human/playbook/frame/frame',
-          'human/playbook/frame/data-licensing',
-          'human/playbook/frame/modern-data-stack',
-          'human/playbook/frame/quality-first',
-        ],
-      },
-      {
-        type: 'category',
-        label: 'Build',
-        collapsed: false,
-        collapsible: false,
-        items: ['human/playbook/build/build', 'human/playbook/build/from-chat-to-tickets', 'human/playbook/build/release'],
-      },
-      {
-        type: 'category',
-        label: 'Operate',
-        collapsed: false,
-        collapsible: false,
-        items: ['human/playbook/operate/operate', 'human/playbook/operate/microproduct-deployment'],
-      },
-    ]);
+  it('includes every live document exactly once in each sidebar', () => {
+    const sidebarDocIds = (items: GeneratedSidebarItem[]): string[] =>
+      items.flatMap((item) => typeof item === 'string' ? [item] : sidebarDocIds(item.items));
+    const docIds = flattenPlaybookNodes(humanPlaybookTree)
+      .flatMap((node) => node.docId ? [node.docId] : []);
+
+    expect(sidebarDocIds(buildHumanPlaybookSidebar()).sort()).toEqual([...docIds].sort());
+    expect(sidebarDocIds(buildAgentPlaybookSidebar()).sort()).toEqual(
+      ['index', 'human/index', ...docIds.map((id) => `human/${id}`)].sort(),
+    );
   });
 
   it('keeps node IDs, document IDs, and routes unique', () => {

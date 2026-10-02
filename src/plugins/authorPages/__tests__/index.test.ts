@@ -15,9 +15,12 @@ function writeSite(authors: unknown): string {
   return siteDir;
 }
 
-function addRoutes(siteDir: string, allContent: AllContent = {}) {
+function addRoutes(
+  siteDir: string,
+  allContent: AllContent = {},
+  addRoute = jest.fn(),
+) {
   const plugin = authorPagesPlugin({siteDir} as LoadContext);
-  const addRoute = jest.fn();
   plugin.allContentLoaded?.({
     allContent,
     actions: {addRoute},
@@ -104,6 +107,50 @@ describe('authorPagesPlugin', () => {
       name: 'HTTP Only',
       articles: [],
     });
+  });
+
+  it.each([
+    {name: 'non-array root', records: {}},
+    {name: 'primitive record', records: [1]},
+    {name: 'null record', records: [null]},
+    {name: 'missing ID', records: [{name: 'Author'}]},
+    {name: 'numeric ID', records: [{id: 123, name: 'Author'}]},
+    {name: 'route-unsafe ID', records: [{id: '../escape', name: 'Author'}]},
+    {name: 'missing name', records: [{id: 'author'}]},
+    {name: 'numeric name', records: [{id: 'author', name: 123}]},
+    {name: 'blank name', records: [{id: 'author', name: ' \t '}]},
+  ])('rejects a $name before registering any routes', ({records}) => {
+    const siteDir = writeSite(
+      Array.isArray(records) ? [{id: 'valid', name: 'Valid Author'}, ...records] : records,
+    );
+    siteDirs.push(siteDir);
+    const addRoute = jest.fn();
+
+    expect(() => addRoutes(siteDir, {}, addRoute)).toThrow(
+      'Author registry must contain route-safe author records.',
+    );
+    expect(addRoute).not.toHaveBeenCalled();
+  });
+
+  it('omits absent and non-string optional profile fields', () => {
+    const siteDir = writeSite([
+      {id: 'absent', name: 'Absent Profile'},
+      {id: 'non-string', name: 'Non-string Profile', bio: 123, url: 123},
+    ]);
+    siteDirs.push(siteDir);
+
+    const addRoute = addRoutes(siteDir);
+    expect(addRoute.mock.calls.map(([route]) => route.props.author)).toEqual([
+      {id: 'absent', name: 'Absent Profile', articles: []},
+      {id: 'non-string', name: 'Non-string Profile', articles: []},
+    ]);
+  });
+
+  it('registers no routes for an empty registry', () => {
+    const siteDir = writeSite([]);
+    siteDirs.push(siteDir);
+
+    expect(addRoutes(siteDir)).not.toHaveBeenCalled();
   });
 
   it('fails closed when the author registry is missing or invalid', () => {

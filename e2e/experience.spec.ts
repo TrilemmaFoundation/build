@@ -33,6 +33,21 @@ test('production CSP self-hosts fonts and permits Vercel Analytics', async ({ pa
   expect(await page.evaluate(() => window.fontPolicyViolations)).toEqual([]);
 });
 
+test('author catalog links every registry author to a native profile', async ({ page }) => {
+  const authors: {id: string; name: string}[] = JSON.parse(readFileSync('src/data/authors.json', 'utf8'));
+  await page.goto('/docs/authors');
+  const catalog = page.locator('.theme-doc-markdown ul').first();
+  await expect(catalog.getByRole('link')).toHaveCount(authors.length);
+  for (const author of authors) {
+    const link = catalog.locator(`a[href="/authors/${author.id}"]`);
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAccessibleName(author.name);
+  }
+  await catalog.locator(`a[href="/authors/${authors[0].id}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`/authors/${authors[0].id}/?$`));
+  await expect(page.getByRole('heading', {level: 1, name: authors[0].name, exact: true})).toBeVisible();
+});
+
 const families = ['/', '/docs/request-for-microproducts', '/agents', '/agents/request-for-microproducts', '/templates', '/archetypes', '/standards', '/contribute', '/showcase', '/authors/matt-faltyn', '/search?q=data', '/404'];
 
 async function expectNoTargetPageHighlights(page: Page): Promise<void> {
