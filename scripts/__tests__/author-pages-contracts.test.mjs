@@ -15,8 +15,6 @@ describe('native author page contracts', () => {
   it('keeps the author catalog on the docs island and links to native profiles', () => {
     assert.match(config, /authorPagesPlugin/);
     assert.match(catalog, /^slug: \/authors$/m);
-    assert.match(catalog, /to=\{\`\/authors\/\$\{author\.id\}\`\}/);
-    assert.doesNotMatch(catalog, /author\.url/);
     assert.ok(Array.isArray(authors) && authors.length > 0);
     assert.equal(
       authors.every((author) => typeof author?.id === 'string' && author.id.length > 0),

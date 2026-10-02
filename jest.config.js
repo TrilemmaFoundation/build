@@ -35,12 +35,21 @@ module.exports = {
     '!src/components/foundation/**',
     '!src/theme/Footer/**',
     '!src/theme/CodeBlock/**',
-    '!src/plugins/**',
+    '!src/plugins/docReadTimes/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
   coverageThreshold: {
     global: {
+      statements: 90,
+      branches: 90,
+      functions: 90,
+      lines: 90,
+    },
+    './src/data/': {statements: 100, branches: 100, functions: 100, lines: 100},
+    './src/utils/': {statements: 100, branches: 100, functions: 100, lines: 100},
+    './src/client/': {statements: 100, branches: 100, functions: 100, lines: 100},
+    './src/plugins/authorPages/index.ts': {
       statements: 100,
       branches: 100,
       functions: 100,

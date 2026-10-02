@@ -39,50 +39,17 @@ describe('performance guards', () => {
     assert.doesNotMatch(docusaurusConfig, /^\s*mermaid\s*:/m);
   });
 
-  it('does not highlight search terms on target pages', () => {
-    const highlight = docusaurusConfig.match(
-      /highlightSearchTermsOnTargetPage:\s*(\w+)/,
-    );
-    assert.equal(
-      highlight?.[1],
-      'false',
-      'search plugin must set highlightSearchTermsOnTargetPage to false',
-    );
-    assert.doesNotMatch(
-      docusaurusConfig,
-      /highlightSearchTermsOnTargetPage:\s*true\b/,
-    );
-  });
-
   it('does not index archetype pages in local search', () => {
     assert.match(docusaurusConfig, /searchIgnoreFiles\(humanPlaybookTree\)/);
     assert.match(docusaurusConfig, /routeBasePath:\s*'archetypes'/);
   });
 
-  it('keeps search match and selection styles distinct', () => {
-    const customCss = read('src/css/custom.css');
-    assert.match(
-      customCss,
-      /--search-local-highlight-color:\s*var\(--tf-azure-bold\)/,
-    );
-    assert.match(
-      customCss,
-      /\.playbook-search mark[\s\S]{0,200}color:\s*inherit !important/,
-    );
-    assert.match(
-      customCss,
-      /\[class\*='searchResultItem'\] mark[\s\S]{0,200}text-decoration:\s*none/,
-    );
-    assert.doesNotMatch(
-      customCss,
-      /\[class\*=['"]?(suggestion|cursor)['"]?\][\s\S]{0,120}background/i,
-    );
-  });
-
   it('keeps local check scripts including validators, tests, and build', () => {
     assert.equal(packageJson.scripts['check:fast'], 'npm run check:validate && npm test');
-    assert.match(packageJson.scripts.check, /check:fast/);
-    assert.match(packageJson.scripts.check, /build/);
+    assert.equal(
+      packageJson.scripts.check,
+      'npm run check:validate && npm run test:coverage && npm run build',
+    );
     assert.equal(
       packageJson.scripts['check:ci'],
       'npm run check:validate && npm run build',

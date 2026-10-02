@@ -46,23 +46,39 @@ This runs:
   `static/schemas/product.schema.json`; product and starter archetypes must match the catalog
 - playbook tree sync check (`humanPlaybook.data.json` must match every file under `docs/human/`)
 - markdown lint for `docs/**/*.md` and `docs/**/*.mdx`, plus `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `templates/**/*.md`, `product-templates/**/*.md`, and `products/**/*.md` (generated `docs/agents/human/**` is excluded)
-- unit and script tests (`npm test`)
+- unit and script tests with coverage (`npm run test:coverage`)
 - `generate-agent-docs`, `generate-llms-full`, production Docusaurus build, and build-artifact validation (static output + link checks)
 
-`npm run check:fast` is the same list without the production build. Husky runs that on `git push`. Use `npm run check` before opening a PR.
+`npm run check:fast` runs validation and tests without coverage or the production
+build. Husky runs that faster feedback loop on `git push`. Use `npm run check`
+before opening a PR; it enforces the same coverage policy as CI.
 
 ## Tests
 
-CI confirms `package-lock.json` is unchanged by `npm install --package-lock-only`, then runs `npm run check:ci` and `npm run test:coverage`. Locally:
+`npm run check` runs validation, coverage tests, and the production build once
+each. Run only the coverage tests with `npm run test:coverage`, or use `npm test`
+for faster tests without coverage.
+
+Jest requires 100% statements, branches, functions, and lines for `src/data/`,
+`src/utils/`, `src/client/`, and the author-page plugin. The remaining collected
+UI code has an aggregate 90% threshold for each metric. Substantive Node scripts
+retain 100% line, branch, and function coverage. Thin command-line adapters and
+framework chrome exercised in browsers remain outside percentage gates.
+
+Test observable behavior and failure cases. Keep validation, publication,
+security, navigation, accessibility, and recovery contracts; avoid assertions
+that merely repeat editorial wording or require a particular source syntax.
+Coverage helps find missing cases and does not replace meaningful assertions.
+
+CI separately confirms `package-lock.json` stays unchanged after
+`npm install --package-lock-only`, runs `npm run check:ci` and
+`npm run test:coverage`, and runs the complete Chromium route and accessibility
+suite. To run the browser checks locally after building:
 
 ```bash
-npm run test:coverage
+npx playwright install chromium
+npm run test:e2e -- --project=chromium
 ```
-
-`npm test` and `npm run test:coverage` run **Jest** for React code and Node's
-built-in test runner for scripts. Coverage enforces 100% line, branch, and
-function coverage for the critical validation utilities while excluding thin
-CLI wrappers.
 
 ## Spelling Check
 

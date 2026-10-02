@@ -3,7 +3,7 @@ title: How to Contribute
 description: Exact process for proposing and publishing new hub content.
 content_kind: reference
 slug: /
-last_reviewed: 2026-08-28
+last_reviewed: 2026-10-02
 authors: [trilemma-foundation]
 ---
 
@@ -21,7 +21,9 @@ version pinned in `.nvmrc`, then install the locked dependency tree with
    calendar date in `YYYY-MM-DD` form. Module pages (the default
    `content_kind`) also require `authors` with registered IDs from
    `src/data/authors.json`.
-3. Run `npm run check` and `npm run test:coverage` locally. `check` already includes typecheck, validators, tests, and the production build.
+3. Run `npm run check` locally. It runs typecheck, validators, coverage tests,
+   and the production build once each. Use `npm run check:fast` for development
+   feedback without coverage or a build.
 4. Open a PR and complete the checklist. GitHub processes pull requests, issues,
    and profile data under GitHub’s policies; you leave Trilemma Foundation
    websites when you open GitHub.
@@ -51,9 +53,25 @@ Starter `product.yaml` files are validated against the public product schema
 and must select an archetype documented in the catalog. Every registry product
 archetype must also exist as a page under `docs/archetypes/`.
 
-`npm run test:coverage` runs Jest for React code and Node's built-in test
-runner for scripts. The critical validation, read-time, and LLM transformation
-modules must retain 100% line, branch, and function coverage.
+`npm run test:coverage` runs Jest and Node's built-in test runner and is included
+in `npm run check`. Jest requires 100% statements, branches, functions, and lines
+for data, URL and navigation utilities, analytics client logic, and the
+author-page plugin. The remaining collected UI code requires an aggregate 90%
+for each metric. Substantive scripts retain 100% line, branch, and function
+coverage; thin adapters and browser-tested framework chrome are excluded.
+
+Test observable behavior, invalid inputs, and recovery. Retain publication,
+registry, navigation, and accessibility contracts. Avoid tests that only repeat
+editorial wording or require a specific source syntax. Coverage identifies
+missing cases and does not replace meaningful assertions.
+
+CI also checks lockfile stability and runs the complete Chromium route and
+accessibility suite. Run the browser checks after a successful build:
+
+```bash
+npx playwright install chromium
+npm run test:e2e -- --project=chromium
+```
 
 ## Review Expectations
 
