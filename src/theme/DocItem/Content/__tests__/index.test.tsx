@@ -19,7 +19,7 @@ function renderDoc(
   mockUseDoc.mockReturnValue({
     metadata: {
       title: 'Doc Title',
-      description: options.description ?? 'Doc description',
+      description: 'description' in options ? options.description : 'Doc description',
       source,
     },
     frontMatter,
@@ -37,6 +37,7 @@ function renderDoc(
 
   render(
     <DocItemContent>
+      {options.contentTitle && <h1>{options.contentTitle}</h1>}
       <p>Body</p>
     </DocItemContent>,
   );
@@ -85,6 +86,53 @@ describe('DocItemContent', () => {
       '@site/docs/human/playbook/frame/frame.md',
     );
 
+    expect(screen.queryByText('Doc description')).not.toBeInTheDocument();
+  });
+
+  it.each([undefined, '', ' \t '])('omits an unavailable or blank subtitle (%p)', (description) => {
+    renderDoc(
+      {content_kind: 'module', useDescriptionAsSubtitle: true},
+      '@site/docs/human/blank-description.md',
+      {description},
+    );
+    expect(document.querySelector('.docSubtitle')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: 'Doc Title'})).toBeInTheDocument();
+  });
+
+  it('trims the description before rendering a subtitle', () => {
+    renderDoc(
+      {content_kind: 'module', useDescriptionAsSubtitle: true},
+      '@site/docs/human/trimmed-description.md',
+      {description: '  Reader orientation.  '},
+    );
+    expect(screen.getByText('Reader orientation.').textContent).toBe('Reader orientation.');
+  });
+
+  it.each([false, 'true', null])('does not enable subtitles for a flag of %p', (flag) => {
+    renderDoc(
+      {content_kind: 'module', useDescriptionAsSubtitle: flag},
+      '@site/docs/human/disabled-subtitle.md',
+    );
+    expect(screen.queryByText('Doc description')).not.toBeInTheDocument();
+  });
+
+  it('omits the subtitle when the document title is hidden', () => {
+    renderDoc(
+      {content_kind: 'module', hide_title: true, useDescriptionAsSubtitle: true},
+      '@site/docs/human/hidden-subtitle.md',
+    );
+    expect(screen.queryByRole('heading', {level: 1})).not.toBeInTheDocument();
+    expect(screen.queryByText('Doc description')).not.toBeInTheDocument();
+  });
+
+  it('keeps an explicit Markdown heading without adding a synthetic title or subtitle', () => {
+    renderDoc(
+      {content_kind: 'module', useDescriptionAsSubtitle: true},
+      '@site/docs/human/explicit-subtitle.md',
+      {contentTitle: 'Explicit Markdown title'},
+    );
+    expect(screen.getAllByRole('heading', {level: 1})).toHaveLength(1);
+    expect(screen.getByRole('heading', {name: 'Explicit Markdown title'})).toBeInTheDocument();
     expect(screen.queryByText('Doc description')).not.toBeInTheDocument();
   });
 

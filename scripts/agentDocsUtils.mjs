@@ -120,8 +120,7 @@ export function metadataFromNode(sourceText, node) {
       ? parsed.title
       : (node.title ?? node.sidebarLabel ?? node.id);
   const sidebarLabel =
-    node.sidebarLabel ??
-    (typeof parsed.sidebar_label === 'string' ? parsed.sidebar_label : undefined);
+    typeof parsed.sidebar_label === 'string' ? parsed.sidebar_label : node.sidebarLabel;
   const description =
     typeof parsed.description === 'string' ? parsed.description : node.description;
   const slug =
@@ -194,11 +193,9 @@ export function renderAgentMirrorOverview(nodes, excludedDocIds = new Set(), doc
  * @param {Map<string, string>} documentTitles
  */
 function appendOverviewNode(lines, node, depth, excludedDocIds, documentTitles) {
-  const title =
-    node.title ??
-    node.sidebarLabel ??
-    (node.docId ? documentTitles.get(node.docId) : undefined) ??
-    node.id;
+  const title = node.docId
+    ? documentTitles.get(node.docId) ?? node.sidebarLabel ?? node.title ?? node.id
+    : node.title ?? node.id;
   const listed = node.docId && node.to && !excludedDocIds.has(node.docId);
   if (listed) {
     const slug = agentSlugFromHumanTo(node.to);

@@ -94,6 +94,7 @@ function buildPlaybookSidebar(
   ];
 
   if (playbookNode?.children?.length) {
+    categoryTitle(playbookNode);
     items.push(
       ...playbookNode.children.map((child) =>
         nestedSidebarItem(child, mapDocId, {collapsible: false}),
@@ -108,14 +109,18 @@ function buildPlaybookSidebar(
   return [
     ...(options.leadingItems ?? []),
     docSidebarItem(root, mapDocId),
-    ...(root.children ?? []).map((node) => ({
-      type: 'category' as const,
-      label: categoryTitle(node),
-      collapsed: false,
-      items: node.children?.length
-        ? node.children.map((child) => nestedSidebarItem(child, mapDocId))
-        : [nestedSidebarItem(node, mapDocId)],
-    })),
+    ...(root.children ?? []).map((node) =>
+      node.docId && !node.children?.length
+        ? docSidebarItem(node, mapDocId)
+        : {
+            type: 'category' as const,
+            label: categoryTitle(node),
+            collapsed: false,
+            items: node.children?.length
+              ? node.children.map((child) => nestedSidebarItem(child, mapDocId))
+              : [nestedSidebarItem(node, mapDocId)],
+          },
+    ),
   ];
 }
 

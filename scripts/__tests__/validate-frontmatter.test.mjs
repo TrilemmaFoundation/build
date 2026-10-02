@@ -112,15 +112,16 @@ describe('frontmatter parsing and validation', () => {
     );
   });
 
-  it('validates the optional description subtitle flag', () => {
-    assert.deepEqual(
-      validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: true`)),
-      [],
-    );
-    hasError(
-      validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: "true"`)),
-      'useDescriptionAsSubtitle must be a boolean value',
-    );
+  it('accepts boolean subtitle flags and rejects string or null flags', () => {
+    for (const flag of ['true', 'false']) {
+      assert.deepEqual(validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: ${flag}`)), []);
+    }
+    for (const flag of ['"true"', 'null']) {
+      hasError(
+        validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: ${flag}`)),
+        'useDescriptionAsSubtitle must be a boolean value',
+      );
+    }
   });
 
   it('applies content-kind author rules', () => {

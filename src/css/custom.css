@@ -114,6 +114,7 @@ article:has(table) + .pagination-nav { max-width: min(100%, var(--tf-width-conte
 .theme-doc-markdown :is(pre, code) { font-family: var(--ifm-font-family-monospace); }
 .theme-doc-markdown pre { max-width: 100%; overflow-x: auto; }
 .theme-doc-markdown :is(img,svg) { max-width: 100%; }
+.theme-doc-markdown blockquote a { text-decoration: underline; }
 .theme-doc-breadcrumbs { margin-bottom: 24px; }
 .table-of-contents { font-size: 14px; }
 .table-of-contents__link { display: inline-block; padding-block: 4px; }

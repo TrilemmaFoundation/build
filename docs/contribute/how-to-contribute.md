@@ -33,6 +33,22 @@ Frontmatter is parsed as full YAML, so quoted and multiline values, lists,
 mappings, numbers, and booleans use normal YAML syntax. Malformed YAML and
 duplicate keys fail validation.
 
+For playbook documents, the source frontmatter `title` is the canonical page
+heading. A document's duplicate `title` in `src/data/humanPlaybook.data.json` is
+optional; category `title` fields remain required and control category headings.
+Use source frontmatter `sidebar_label` to shorten a navigation label. JSON
+`sidebarLabel` supplies a fallback when the source has no `sidebar_label`.
+Human navigation, generated mirror metadata, and mirror overview links use the
+source label, then JSON label, then canonical document title. LLM bundle headings
+use a nonempty source title, then the legacy JSON title, then the node ID.
+
+Set `useDescriptionAsSubtitle: true` as a YAML boolean to show the document's
+trimmed description beneath its generated title. The default and `false` hide
+it; string and null values fail validation. Missing, empty, or whitespace-only
+descriptions produce no subtitle. A hidden title (`hide_title: true`), an
+explicit Markdown H1, or a generated agent mirror also suppresses the
+subtitle.
+
 Registry link fields (`repo`, `site`, `docs`, and `agent_entrypoint`) must use
 public HTTPS domains. Localhost, local or internal domains, credentials, and
 IP-address destinations are rejected by registry validation. URLs on

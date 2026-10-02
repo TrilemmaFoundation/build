@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {afterEach, describe, it} from 'node:test';
+import {toSidebarDocItemLinkProp} from '@docusaurus/plugin-content-docs/lib/props.js';
 
 import {
   agentSlugFromHumanTo,
@@ -161,6 +162,34 @@ Body
     assert.equal(metadata.slug, '/playbook/frame');
   });
 
+  it('falls back to a JSON sidebar label or node ID when no title is available', () => {
+    const node = {id: 'fallback', description: 'Fallback', docId: 'fallback', to: '/docs/fallback'};
+    assert.equal(metadataFromNode('Body', {...node, sidebarLabel: 'JSON navigation'}).title, 'JSON navigation');
+    assert.equal(metadataFromNode('Body', node).title, 'fallback');
+  });
+
+  it('keeps deterministic overview fallbacks when document metadata is unavailable', () => {
+    const nodes = [
+      {id: 'json-label', sidebarLabel: 'JSON navigation'},
+      {id: 'json-title', title: 'JSON fallback title'},
+      {id: 'id-only'},
+    ].map((node) => ({...node, description: 'Fallback', docId: node.id, to: `/docs/${node.id}`}));
+    const overview = renderAgentMirrorOverview(nodes);
+    assert.match(overview, /\[JSON navigation\]\(\/agents\/json-label\)/);
+    assert.match(overview, /\[JSON fallback title\]\(\/agents\/json-title\)/);
+    assert.match(overview, /\[id-only\]\(\/agents\/id-only\)/);
+    const categoryOverview = renderAgentMirrorOverview([{
+      id: 'category', title: 'JSON category heading', sidebarLabel: 'Document-only override',
+      description: 'Category', children: nodes,
+    }]);
+    assert.match(categoryOverview, /^### JSON category heading$/m);
+    assert.doesNotMatch(categoryOverview, /Document-only override/);
+    assert.match(
+      renderAgentMirrorOverview([{id: 'category', description: 'Category', children: nodes}]),
+      /^### category$/m,
+    );
+  });
+
   it('parses malformed frontmatter safely and renders overview links', () => {
     assert.deepEqual(parseSourceFrontmatter('no frontmatter'), {});
     assert.deepEqual(parseSourceFrontmatter('---\n- not\na map\n---\n'), {});
@@ -316,6 +345,43 @@ slug: /playbook/another
     assert.match(overview, /Human Docs Mirror/);
     assert.match(overview, /\/agents\/playbook\/sample/);
     assert.match(overview, /\[Another sidebar label\]/);
+  });
+
+  it('keeps source titles and Docusaurus label precedence in mirrors and their overview', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-labels-'));
+    const cases = [
+      {id: 'source-label', title: 'Stale JSON title', sidebarLabel: 'JSON navigation', sourceLabel: 'Source navigation', expectedLabel: 'Source navigation'},
+      {id: 'json-label', sidebarLabel: 'JSON navigation', expectedLabel: 'JSON navigation'},
+      {id: 'document-title', expectedLabel: 'Canonical document-title'},
+    ];
+    const nodes = cases.map(({id, title, sidebarLabel}) => ({
+      id, ...(title ? {title} : {}), ...(sidebarLabel ? {sidebarLabel} : {}),
+      description: 'Tree description', docId: id, to: `/docs/${id}`,
+    }));
+    writeFile(tempRoot, 'src/data/humanPlaybook.data.json', JSON.stringify(nodes));
+    for (const entry of cases) {
+      writeFile(tempRoot, `docs/human/${entry.id}.md`, [
+        '---', `title: Canonical ${entry.id}`, 'description: Source description',
+        ...(entry.sourceLabel ? [`sidebar_label: ${entry.sourceLabel}`] : []),
+        'useDescriptionAsSubtitle: true', '---', '', 'Source body.',
+      ].join('\n'));
+    }
+    const {mirrorRoot} = generateAgentDocs({root: tempRoot});
+    const overview = fs.readFileSync(path.join(mirrorRoot, 'index.md'), 'utf8');
+    for (const [index, entry] of cases.entries()) {
+      const node = nodes[index];
+      const source = parseSourceFrontmatter(fs.readFileSync(path.join(tempRoot, `docs/human/${entry.id}.md`), 'utf8'));
+      const mirror = parseSourceFrontmatter(fs.readFileSync(path.join(mirrorRoot, `${entry.id}.md`), 'utf8'));
+      const item = {type: 'doc', id: entry.id, label: node.sidebarLabel};
+      const humanLink = toSidebarDocItemLinkProp({item, doc: {id: entry.id, title: source.title, permalink: node.to, frontMatter: source, unlisted: false}});
+      const mirrorLink = toSidebarDocItemLinkProp({item, doc: {id: entry.id, title: mirror.title, permalink: `/agents/${entry.id}`, frontMatter: mirror, unlisted: false}});
+      assert.equal(mirror.title, source.title);
+      assert.equal(mirror.useDescriptionAsSubtitle, undefined);
+      assert.equal(humanLink.label, entry.expectedLabel);
+      assert.equal(mirrorLink.label, humanLink.label);
+      assert.ok(overview.includes(`[${humanLink.label}](/agents/${entry.id})`), overview);
+      assert.doesNotMatch(overview, /undefined|Stale JSON title/);
+    }
   });
 
   it('rejects docIds that escape the agent mirror root', () => {
