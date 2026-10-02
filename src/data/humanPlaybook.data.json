@@ -39,7 +39,6 @@
               },
               {
                 "id": "quality-first",
-                "title": "Quality-First",
                 "description": "How a modern approach to QA and spec-driven development helps ship quickly and confidently.",
                 "docId": "playbook/frame/quality-first",
                 "to": "/docs/playbook/frame/quality-first"

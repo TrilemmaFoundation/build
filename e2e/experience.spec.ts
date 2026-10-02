@@ -1,6 +1,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { parseSourceFrontmatter } from '../scripts/agentDocsUtils.mjs';
+import { flattenPlaybookNodes } from '../scripts/playbookTreeUtils.mjs';
+import type { PlaybookTreeNode } from '../src/data/humanPlaybook';
 
 declare global {
   interface Window { fontPolicyViolations: string[] }
@@ -46,6 +49,40 @@ test('author catalog links every registry author to a native profile', async ({ 
   await catalog.locator(`a[href="/authors/${authors[0].id}"]`).click();
   await expect(page).toHaveURL(new RegExp(`/authors/${authors[0].id}/?$`));
   await expect(page.getByRole('heading', {level: 1, name: authors[0].name, exact: true})).toBeVisible();
+});
+
+test('Quality-First titles, subtitles, and sidebar labels agree across human and mirror pages', async ({ page }) => {
+  const source = parseSourceFrontmatter(readFileSync('docs/human/playbook/frame/quality-first.md', 'utf8')) as {title: string; description: string; sidebar_label?: string};
+  const tree = JSON.parse(readFileSync('src/data/humanPlaybook.data.json', 'utf8'));
+  const node = (flattenPlaybookNodes(tree) as PlaybookTreeNode[]).find((entry) => entry.docId === 'playbook/frame/quality-first')!;
+  const label = source.sidebar_label ?? node.sidebarLabel ?? source.title;
+  const humanPath = node.to!;
+  const mirrorPath = humanPath.replace(/^\/docs/, '/agents');
+  await page.emulateMedia({reducedMotion: 'reduce'});
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({width, height: 844});
+    for (const path of [humanPath, mirrorPath]) {
+      await page.goto(path);
+      await expect(page.getByRole('heading', {level: 1})).toHaveCount(1);
+      await expect(page.getByRole('heading', {level: 1, name: source.title, exact: true})).toBeVisible();
+      const subtitle = page.locator('.theme-doc-markdown header p');
+      if (path === humanPath) {
+        await expect(subtitle).toHaveText(source.description);
+      } else {
+        await expect(subtitle).toHaveCount(0);
+      }
+      if (width < 997) await page.getByRole('button', {name: 'Open page navigation', exact: true}).click();
+      const sidebar = page.locator(width < 997 ? '.navbar-sidebar' : '.theme-doc-sidebar-container');
+      const link = sidebar.locator(`a[href="${path}"]`);
+      await expect(link).toHaveCount(1);
+      await expect(link).toHaveText(label);
+      await expect(link).toBeVisible();
+      if (width < 997) await page.keyboard.press('Escape');
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const accessibility = await new AxeBuilder({page}).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+      expect(accessibility.violations, JSON.stringify(accessibility.violations, null, 2)).toEqual([]);
+    }
+  }
 });
 
 const families = ['/', '/docs/request-for-microproducts', '/agents', '/agents/request-for-microproducts', '/templates', '/archetypes', '/standards', '/contribute', '/showcase', '/authors/matt-faltyn', '/search?q=data', '/404'];

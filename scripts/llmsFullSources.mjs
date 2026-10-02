@@ -39,7 +39,9 @@ export function buildLlmsFullSources(root) {
     const transform = sourcePath.endsWith('.mdx')
       ? stripFrontmatterAndMdxForLlms
       : stripYamlFrontmatter;
-    sources.push([relativePath, node.title, transform]);
+    const {title} = parseSourceFrontmatter(fs.readFileSync(sourcePath, 'utf8'));
+    const label = typeof title === 'string' && title.trim() ? title : node.title ?? node.id;
+    sources.push([relativePath, label, transform]);
   }
 
   const archetypeDir = path.join(root, 'docs', 'archetypes');

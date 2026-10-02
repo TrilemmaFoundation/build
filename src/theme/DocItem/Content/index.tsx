@@ -18,6 +18,7 @@ type ReadTimeData = {
 type BuildTrilemmaFrontMatter = {
   authors?: unknown;
   content_kind?: unknown;
+  useDescriptionAsSubtitle?: unknown;
 };
 
 const INSTITUTIONAL_AUTHOR_ID = 'trilemma-foundation';
@@ -31,6 +32,22 @@ function useSyntheticTitle(): string | null {
     return null;
   }
   return metadata.title;
+}
+
+function useDocSubtitle(hasSyntheticTitle: boolean): string | null {
+  const {metadata, frontMatter} = useDoc();
+  const buildFrontMatter = frontMatter as BuildTrilemmaFrontMatter;
+
+  if (
+    !hasSyntheticTitle ||
+    buildFrontMatter.content_kind === 'mirror' ||
+    buildFrontMatter.useDescriptionAsSubtitle !== true
+  ) {
+    return null;
+  }
+
+  const description = metadata.description?.trim();
+  return description || null;
 }
 
 function DocByline(): ReactNode {
@@ -88,11 +105,13 @@ function DocByline(): ReactNode {
 
 export default function DocItemContent({children}: Props): ReactNode {
   const syntheticTitle = useSyntheticTitle();
+  const subtitle = useDocSubtitle(Boolean(syntheticTitle));
   return (
     <div className={clsx(ThemeClassNames.docs.docMarkdown, 'markdown')}>
       {syntheticTitle && (
         <header>
           <Heading as="h1">{syntheticTitle}</Heading>
+          {subtitle && <p className={styles.docSubtitle}>{subtitle}</p>}
         </header>
       )}
       <DocByline />

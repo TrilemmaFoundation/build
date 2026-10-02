@@ -31,6 +31,7 @@ export function generateAgentDocs({root = path.resolve(import.meta.dirname, '..'
 
   const written = [];
   const excludedDocIds = new Set();
+  const documentTitles = new Map();
   const leaves = flattenPlaybookNodes(humanPlaybookTree).filter((node) => node.docId);
 
   for (const node of leaves) {
@@ -40,6 +41,7 @@ export function generateAgentDocs({root = path.resolve(import.meta.dirname, '..'
     if (metadata.draft || metadata.unlisted) {
       excludedDocIds.add(node.docId);
     }
+    documentTitles.set(node.docId, metadata.sidebarLabel ?? metadata.title);
     const output = buildAgentMirrorDocument(sourceText, metadata);
     const outputPath = assertPathInside(
       agentMirrorRoot,
@@ -50,7 +52,7 @@ export function generateAgentDocs({root = path.resolve(import.meta.dirname, '..'
     written.push(node.docId);
   }
 
-  const overview = renderAgentMirrorOverview(humanPlaybookTree, excludedDocIds);
+  const overview = renderAgentMirrorOverview(humanPlaybookTree, excludedDocIds, documentTitles);
   const overviewPath = path.join(agentMirrorRoot, 'index.md');
   fs.writeFileSync(overviewPath, overview, 'utf8');
 

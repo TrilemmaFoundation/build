@@ -79,6 +79,7 @@ export function resolveHumanSourceFile(humanDocsRoot, docId) {
  *   sourceDocId: string;
  *   draft?: boolean;
  *   unlisted?: boolean;
+ *   sidebarLabel?: string;
  * }} metadata
  */
 export function buildAgentMirrorDocument(sourceText, metadata) {
@@ -86,6 +87,7 @@ export function buildAgentMirrorDocument(sourceText, metadata) {
   const frontmatter = dump(
     {
       title: metadata.title,
+      ...(metadata.sidebarLabel ? {sidebar_label: metadata.sidebarLabel} : {}),
       description: metadata.description,
       slug: metadata.slug,
       canonical_human_url: metadata.canonicalHumanUrl,
@@ -113,7 +115,12 @@ export function metadataFromNode(sourceText, node) {
   }
 
   const parsed = parseSourceFrontmatter(sourceText);
-  const title = typeof parsed.title === 'string' ? parsed.title : node.title;
+  const title =
+    typeof parsed.title === 'string'
+      ? parsed.title
+      : (node.title ?? node.sidebarLabel ?? node.id);
+  const sidebarLabel =
+    typeof parsed.sidebar_label === 'string' ? parsed.sidebar_label : node.sidebarLabel;
   const description =
     typeof parsed.description === 'string' ? parsed.description : node.description;
   const slug =
@@ -130,6 +137,7 @@ export function metadataFromNode(sourceText, node) {
     sourceDocId: node.docId,
     ...(parsed.draft === true ? {draft: true} : {}),
     ...(parsed.unlisted === true ? {unlisted: true} : {}),
+    ...(sidebarLabel ? {sidebarLabel} : {}),
   };
 }
 
@@ -152,9 +160,10 @@ export function parseSourceFrontmatter(sourceText) {
 
 /**
  * @param {import('../src/data/humanPlaybook').PlaybookTreeNode[]} nodes
- * @param {Set<string>} excludedDocIds
+ * @param {Set<string>} [excludedDocIds]
+ * @param {Map<string, string>} [documentTitles]
  */
-export function renderAgentMirrorOverview(nodes, excludedDocIds = new Set()) {
+export function renderAgentMirrorOverview(nodes, excludedDocIds = new Set(), documentTitles = new Map()) {
   const lines = [
     '---',
     'title: Human Docs Mirror',
@@ -170,7 +179,7 @@ export function renderAgentMirrorOverview(nodes, excludedDocIds = new Set()) {
   ];
 
   for (const node of nodes) {
-    appendOverviewNode(lines, node, 0, excludedDocIds);
+    appendOverviewNode(lines, node, 0, excludedDocIds, documentTitles);
   }
 
   return `${lines.join('\n')}\n`;
@@ -181,24 +190,34 @@ export function renderAgentMirrorOverview(nodes, excludedDocIds = new Set()) {
  * @param {import('../src/data/humanPlaybook').PlaybookTreeNode} node
  * @param {number} depth
  * @param {Set<string>} excludedDocIds
+ * @param {Map<string, string>} documentTitles
  */
-function appendOverviewNode(lines, node, depth, excludedDocIds) {
+function appendOverviewNode(lines, node, depth, excludedDocIds, documentTitles) {
+  const title = node.docId
+    ? documentTitles.get(node.docId) ?? node.sidebarLabel ?? node.title ?? node.id
+    : node.title ?? node.id;
   const listed = node.docId && node.to && !excludedDocIds.has(node.docId);
   if (listed) {
     const slug = agentSlugFromHumanTo(node.to);
     const indent = '  '.repeat(depth);
-    lines.push(`${indent}- [${node.title}](/agents${slug}) — ${node.description}`);
+    lines.push(`${indent}- [${title}](/agents${slug}) — ${node.description}`);
   }
 
   if (node.children?.length) {
     if (!node.docId) {
-      lines.push(`${'  '.repeat(depth)}### ${node.title}`);
+      lines.push(`${'  '.repeat(depth)}### ${title}`);
       lines.push('');
       lines.push(node.description);
       lines.push('');
     }
     for (const child of node.children) {
-      appendOverviewNode(lines, child, listed ? depth + 1 : depth, excludedDocIds);
+      appendOverviewNode(
+        lines,
+        child,
+        listed ? depth + 1 : depth,
+        excludedDocIds,
+        documentTitles,
+      );
     }
   }
 }

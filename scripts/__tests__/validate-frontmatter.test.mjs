@@ -112,6 +112,18 @@ describe('frontmatter parsing and validation', () => {
     );
   });
 
+  it('accepts boolean subtitle flags and rejects string or null flags', () => {
+    for (const flag of ['true', 'false']) {
+      assert.deepEqual(validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: ${flag}`)), []);
+    }
+    for (const flag of ['"true"', 'null']) {
+      hasError(
+        validate(frontmatter(`${validMission}\nuseDescriptionAsSubtitle: ${flag}`)),
+        'useDescriptionAsSubtitle must be a boolean value',
+      );
+    }
+  });
+
   it('applies content-kind author rules', () => {
     const withoutAuthors = validMission.replace('\nauthors: [trilemma-foundation]', '');
     hasError(validate(frontmatter(withoutAuthors)), "missing required frontmatter field 'authors'");
