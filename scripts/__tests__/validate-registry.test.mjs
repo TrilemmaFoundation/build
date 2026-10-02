@@ -44,6 +44,42 @@ function registry(products = [product('known-archetype')]) {
   };
 }
 
+describe('published registry', () => {
+  it('preserves StackingSats identity and historical maturity while marking it archived', () => {
+    const published = JSON.parse(fs.readFileSync(path.join(repoRoot, 'static/registry.json'), 'utf8'));
+    assert.deepEqual(collectRegistryErrors(repoRoot), []);
+    assert.deepEqual(published.products.map(({id}) => id), ['stackingsats']);
+    assert.deepEqual(
+      {...published, products: []},
+      registry([]),
+    );
+    const entry = published.products[0];
+    assert.deepEqual(
+      {
+        name: entry.name,
+        status: entry.status,
+        maturity: entry.maturity,
+        maturity_label: entry.maturity_label,
+        repo: entry.repo,
+        site: entry.site,
+        docs: entry.docs,
+      },
+      {
+        name: 'StackingSats',
+        status: 'archived',
+        maturity: 5,
+        maturity_label: 'maintained-product',
+        repo: 'https://github.com/hypertrial/stacksats',
+        site: 'https://stackingsats.org/',
+        docs: 'https://github.com/hypertrial/stacksats/blob/9ba73643c4478ddd92650557a90e91e64674f587/docs/data-source.md',
+      },
+    );
+    assert.match(entry.problem, /fixed-budget/i);
+    assert.match(entry.problem, /Bitcoin accumulation/i);
+    assert.match(entry.problem, /\b(research|test|testing)\b/i);
+  });
+});
+
 describe('registry and starter validation', () => {
   let root;
 

@@ -5,6 +5,7 @@ import { useNavbarMobileSidebar } from '@docusaurus/theme-common/internal';
 import SearchBar from '@theme/SearchBar';
 
 const links = [ ['Humans', '/docs/request-for-microproducts'], ['Agents', '/agents'], ['Templates', '/templates'], ['Showcase', '/showcase'] ];
+let focusAfterDrawerNavigation = false;
 
 export default function NavbarContent() {
   const { pathname } = useLocation();
@@ -23,12 +24,28 @@ export default function NavbarContent() {
   const currentPath = useRef(pathname);
   currentPath.current = pathname;
   useEffect(() => {
-    if (!sidebar.shown) return;
+    if (!focusAfterDrawerNavigation) return;
+    focusAfterDrawerNavigation = false;
+    const frame = requestAnimationFrame(() => {
+      const main = document.querySelector<HTMLElement>('main');
+      if (main) { main.tabIndex = -1; main.focus({ preventScroll: true }); }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+  useEffect(() => {
+    if (!sidebar.shown || !sidebar.shouldRender) return;
     const openedPath = currentPath.current;
     const covered = [...document.querySelectorAll<HTMLElement>('.playbook-header, .main-wrapper, footer, [class*=skipToContent]')];
     const previous = covered.map(node => node.inert);
     covered.forEach(node => { node.inert = true; });
-    const frame = requestAnimationFrame(() => document.querySelector<HTMLElement>('.navbar-sidebar__close')?.focus());
+    const focusDrawer = (event?: TransitionEvent) => {
+      if (event && (!(event.target instanceof Element) || !event.target.matches('.navbar-sidebar'))) return;
+      if (document.activeElement?.closest('.navbar-sidebar')) return;
+      document.querySelector<HTMLElement>('.navbar-sidebar__close')?.focus({ preventScroll: true });
+    };
+    const frame = requestAnimationFrame(() => focusDrawer());
+    // The first frame can precede the drawer's visibility transition.
+    document.addEventListener('transitionend', focusDrawer);
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') { event.preventDefault(); sidebar.toggle(); }
       if (event.key !== 'Tab') return;
@@ -41,15 +58,19 @@ export default function NavbarContent() {
     document.addEventListener('keydown', onKey);
     return () => {
       cancelAnimationFrame(frame);
+      document.removeEventListener('transitionend', focusDrawer);
       document.removeEventListener('keydown', onKey);
       covered.forEach((node, index) => { node.inert = previous[index]; });
-      if (currentPath.current === openedPath) pageToggle.current?.focus();
-      else {
+      if (window.location.pathname === openedPath && pageToggle.current?.getClientRects().length) pageToggle.current.focus();
+      else if (window.location.pathname !== openedPath) {
+        // Docusaurus keeps the old page until the next route's chunk is ready.
+        focusAfterDrawerNavigation = true;
+      } else {
         const main = document.querySelector<HTMLElement>('main');
         if (main) { main.tabIndex = -1; main.focus({ preventScroll: true }); }
       }
     };
-  }, [sidebar.shown, sidebar.toggle]);
+  }, [sidebar.shown, sidebar.shouldRender, sidebar.toggle]);
   return <div ref={header} className="playbook-header foundation-local-nav">
     <nav className="foundation-local-inner playbook-tools" aria-label="Build Trilemma navigation">
       <Link to="/" className="foundation-local-brand">Build Trilemma</Link>

@@ -68,6 +68,25 @@ test('author websites announce a new tab and mirror links are visually distinct'
   }
 });
 
+test('external Markdown links announce a new tab and preserve safe link handling', async ({ page }) => {
+  for (const path of ['/templates', '/contribute']) {
+    await page.goto(path);
+    const markdown = page.locator('.theme-doc-markdown');
+    const external = markdown.locator('a[href^="https://"]');
+    expect(await external.count(), `${path} should exercise external Markdown links`).toBeGreaterThan(0);
+    for (const link of await external.all()) {
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('rel', /(?:^|\s)noopener(?:\s|$)/);
+      await expect(link).toHaveAttribute('rel', /(?:^|\s)noreferrer(?:\s|$)/);
+      await expect(link).toHaveAccessibleName(/opens in a new tab/i);
+    }
+    for (const link of await markdown.locator('a[href^="/"]').all()) {
+      await expect(link).not.toHaveAttribute('target', '_blank');
+      await expect(link).not.toHaveAccessibleName(/opens in a new tab/i);
+    }
+  }
+});
+
 test('Quality-First titles, subtitles, and sidebar labels agree across human and mirror pages', async ({ page }) => {
   const source = parseSourceFrontmatter(readFileSync('docs/human/playbook/frame/quality-first.md', 'utf8')) as {title: string; description: string; sidebar_label?: string};
   const tree = JSON.parse(readFileSync('src/data/humanPlaybook.data.json', 'utf8'));
@@ -177,26 +196,98 @@ test('markdown tables keep letter-only words intact', async ({ page }) => {
   }
 });
 
-test('showcase table keeps names, team, and links readable', async ({ page }) => {
+const showcaseProducts: {name: string; slug: string; availability: string; repo: string; action?: [string, string]}[] = [
+  {name: 'TitanSkies', slug: 'titanskies', availability: 'Live app', repo: 'titanskies', action: ['Live app', 'https://www.titanskies.com/']},
+  {name: 'HyperOptions', slug: 'hyperoptions', availability: 'Local workstation', repo: 'hyperoptions'},
+  {name: 'TravelCanary', slug: 'travelcanary', availability: 'Beta · live app', repo: 'travelcanary', action: ['Live app', 'https://travelcanary.org/']},
+  {name: 'HouseHunter', slug: 'househunter', availability: 'Alpha · source only', repo: 'househunter'},
+  {name: 'RockyRoad', slug: 'rockyroad', availability: 'Alpha · source only', repo: 'rockyroad'},
+  {name: 'StackingSats', slug: 'stackingsats', availability: 'Archived', repo: 'stacksats', action: ['Archive', 'https://stackingsats.org/']},
+];
+
+test('showcase preserves catalog order, availability, and safe destinations', async ({ page }) => {
+  await page.goto('/showcase');
   const table = page.locator('.theme-doc-markdown table');
-  for (const width of [390, 1280]) {
+  await expect(table.locator('th')).toHaveText(['Name', 'Description', 'Availability', 'Links']);
+  const rows = table.locator('tbody tr');
+  await expect(rows).toHaveCount(showcaseProducts.length);
+  await expect(rows.locator('td:first-child')).toHaveText(showcaseProducts.map(({name}) => name));
+  for (const [index, product] of showcaseProducts.entries()) {
+    const row = rows.nth(index);
+    const cells = row.locator('td');
+    await expect(cells).toHaveCount(4);
+    await expect(cells.nth(1)).not.toHaveText(/^\s*$/);
+    await expect(cells.nth(2)).toHaveText(product.availability);
+    await expect(cells.nth(0).getByRole('link')).toHaveAttribute('href', `https://data.trilemma.foundation/apps/${product.slug}`);
+    const actions = cells.nth(3).getByRole('link');
+    await expect(actions).toHaveText(product.action ? [product.action[0], 'Source'] : ['Source']);
+    if (product.action) await expect(actions.first()).toHaveAttribute('href', product.action[1]);
+    await expect(actions.last()).toHaveAttribute('href', `https://github.com/hypertrial/${product.repo}`);
+    for (const link of await row.getByRole('link').all()) {
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('rel', /(?:^|\s)noopener(?:\s|$)/);
+      await expect(link).toHaveAttribute('rel', /(?:^|\s)noreferrer(?:\s|$)/);
+      await expect(link).toHaveAccessibleName(new RegExp(product.name));
+      await expect(link).toHaveAccessibleName(/opens in a new tab/i);
+    }
+  }
+  await expect(page.locator('.theme-doc-markdown')).not.toContainText(/OddsFox|HonestRoles|SurgRisk/);
+
+  const response = await page.request.get('/llms-full.txt');
+  expect(response.ok()).toBe(true);
+  const llms = await response.text();
+  const showcase = llms.match(/\(docs\/showcase\/microproducts\.md\) =====\n([\s\S]*?)(?=\n\n=====|$)/)?.[1];
+  expect(showcase).toBeDefined();
+  for (const {name, slug} of showcaseProducts) {
+    expect(showcase).toContain(name);
+    expect(showcase).toContain(`https://data.trilemma.foundation/apps/${slug}`);
+  }
+  expect(showcase).not.toMatch(/OddsFox|HonestRoles|SurgRisk/);
+});
+
+test('showcase table keeps names, availability, and actions readable', async ({ page }) => {
+  const table = page.locator('.theme-doc-markdown table');
+  for (const width of [320, 390, 768, 1023, 1024, 1280, 1536]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/showcase');
     await expect(page.locator('h1')).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const layout = await table.evaluate((el) => {
       const rows = [...(el as HTMLTableElement).rows];
-      const team = rows[0]?.cells[2];
-      const teamRange = document.createRange();
-      if (team) teamRange.selectNodeContents(team);
+      const availability = rows[0]?.cells[2];
+      const range = document.createRange();
+      if (availability) range.selectNodeContents(availability);
       return {
         scrolls: el.scrollWidth > el.clientWidth + 1,
-        teamLines: team ? teamRange.getClientRects().length : 0,
+        availabilityLines: availability ? range.getClientRects().length : 0,
+        overflowX: getComputedStyle(el).overflowX,
       };
     });
-    expect(layout.teamLines).toBe(1);
-    expect(layout.scrolls).toBe(width < 768);
+    expect(layout.availabilityLines).toBe(1);
+    expect(layout.overflowX).toBe('auto');
+    if (width < 768) expect(layout.scrolls).toBe(true);
+    expect(await table.evaluateAll(brokenLetterWords), `showcase at ${width}px`).toEqual([]);
   }
+});
+
+test('showcase links remain reachable with visible keyboard focus inside the scrolling table', async ({ page }) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/showcase');
+  const links = page.locator('.theme-doc-markdown table').getByRole('link');
+  await links.first().focus();
+  for (let index = 1; index < await links.count(); index++) {
+    await page.keyboard.press('Tab');
+    const link = links.nth(index);
+    await expect(link).toBeFocused();
+    await expect(link).toBeInViewport({ratio: 1});
+    const outline = await link.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {width: parseFloat(style.outlineWidth), style: style.outlineStyle};
+    });
+    expect(outline.width).toBeGreaterThan(0);
+    expect(outline.style).not.toBe('none');
+  }
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test('light surfaces and primary hover remain accessible', async ({ page }) => {
@@ -206,7 +297,7 @@ test('light surfaces and primary hover remain accessible', async ({ page }) => {
   await primary.hover();
   await expect(primary).toHaveCSS('color', 'rgb(241, 241, 249)');
   await expect(primary).toHaveCSS('background-color', 'rgb(88, 88, 200)');
-  for (const path of ['/', '/docs/request-for-microproducts', '/templates', '/agents', '/search?q=data', '/docs/playbook/frame/modern-data-stack']) {
+  for (const path of ['/', '/docs/request-for-microproducts', '/templates', '/agents', '/showcase', '/search?q=data', '/docs/playbook/frame/modern-data-stack']) {
     await page.goto(path);
     const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
@@ -214,16 +305,44 @@ test('light surfaces and primary hover remain accessible', async ({ page }) => {
 });
 
 
-test('page navigation isolates content and restores focus', async ({ page }) => {
+test('page navigation isolates content and restores focus', async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/docs/request-for-microproducts');
   const toggle = page.getByRole('button', { name: 'Open page navigation' });
   await toggle.click();
-  await expect(page.locator('.navbar-sidebar')).toBeVisible();
+  const drawer = page.locator('.navbar-sidebar');
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole('button', {name: 'Close navigation bar', exact: true})).toBeFocused();
+  await page.screenshot({path: info.outputPath('drawer-focused.png')});
   await expect(page.locator('.playbook-header')).toHaveJSProperty('inert', true);
   await expect(page.locator('.main-wrapper')).toHaveJSProperty('inert', true);
+  const controls = drawer.locator('a[href], button').filter({visible: true});
+  await controls.first().focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(controls.last()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(controls.first()).toBeFocused();
   await page.keyboard.press('Escape');
+  await expect(drawer).toBeHidden();
+  await expect(page.locator('.playbook-header')).toHaveJSProperty('inert', false);
+  await expect(page.locator('.main-wrapper')).toHaveJSProperty('inert', false);
   await expect(toggle).toBeFocused();
+});
+
+test('page navigation keyboard transitions focus the new main content', async ({ page }, info) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/docs/request-for-microproducts');
+  await page.getByRole('button', {name: 'Open page navigation'}).press('Enter');
+  const drawer = page.locator('.navbar-sidebar');
+  const destination = drawer.locator('a[href="/docs/playbook/frame"]').first();
+  await expect(destination).toBeVisible();
+  await destination.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/docs\/playbook\/frame\/?$/);
+  await expect(drawer).toBeHidden();
+  await expect(page.locator('main')).toBeFocused();
+  await page.screenshot({path: info.outputPath('route-focused.png')});
+  await expect(page.locator('.main-wrapper')).toHaveJSProperty('inert', false);
 });
 
 test('anchors and previous/next links work with the local header', async ({ page }) => {
@@ -251,6 +370,16 @@ test('search results can be selected with the keyboard', async ({ page }) => {
   await expect(page).not.toHaveURL(/[?&]_highlight=/);
   await expect(page.locator('h1')).toBeVisible();
   await expectNoTargetPageHighlights(page);
+});
+
+test('HouseHunter is discoverable through local search on the Showcase', async ({ page }) => {
+  await page.goto('/search?q=HouseHunter');
+  const result = page.locator('section article h2 a').filter({hasText: 'Microproducts Showcase'});
+  await expect(result).toHaveCount(1);
+  await expect(result).toHaveAttribute('href', /\/showcase\/?$/);
+  await result.click();
+  await expect(page).toHaveURL(/\/showcase\/?$/);
+  await expect(page.locator('.theme-doc-markdown table')).toContainText('HouseHunter');
 });
 
 function expectNotArchetypePath(href: string): void {
@@ -340,7 +469,7 @@ test('search clicks omit highlight params and leftover highlights stay unmarked'
 test('200% text reflows and reduced motion disables decorative movement', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  for (const path of ['/', '/docs/request-for-microproducts', '/templates', '/search?q=data', '/docs/playbook/frame/modern-data-stack']) {
+  for (const path of ['/', '/docs/request-for-microproducts', '/templates', '/showcase', '/search?q=data', '/docs/playbook/frame/modern-data-stack']) {
     await page.goto(path);
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

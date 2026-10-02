@@ -38,7 +38,7 @@ function setupFixture(mission = frontmatter(validMission)) {
   writeFile(
     root,
     'docs/showcase/microproducts.md',
-    `${frontmatter(validMission)}\n| Name | Description | Team | Link |\n`,
+    `${frontmatter(validMission)}\n| Name | Description | Availability | Links |\n`,
   );
   writeFile(root, 'templates/playbook-module.mdx', frontmatter(validMission));
   writeFile(root, 'product-templates/example/product.yaml', 'id: ignored\n');
@@ -314,7 +314,7 @@ describe('frontmatter parsing and validation', () => {
         writeFile(
           root,
           'docs/showcase/microproducts.md',
-          `${frontmatter(validMission)}\n| Name | Description | Team | Link | Extra |\n`,
+          `${frontmatter(validMission)}\n| Name | Description | Availability | Links | Extra |\n`,
         ),
       ),
       'table header must be exactly',
@@ -326,12 +326,12 @@ describe('frontmatter parsing and validation', () => {
           'docs/showcase/microproducts.md',
           [
             frontmatter(validMission),
-            '| Name | Description | Team | Link | Extra |',
+            '| Name | Description | Availability | Links | Extra |',
             '| --- | --- | --- | --- | --- |',
-            '| Broken | row | 1 | https://example.com | x |',
+            '| Broken | row | Archived | https://example.com | x |',
             '',
             'Example of the required header:',
-            '| Name | Description | Team | Link |',
+            '| Name | Description | Availability | Links |',
             '',
           ].join('\n'),
         ),
@@ -346,7 +346,7 @@ describe('frontmatter parsing and validation', () => {
           [
             frontmatter(validMission),
             '| --- | --- | --- | --- |',
-            '| Name | Description | Team | Link |',
+            '| Name | Description | Availability | Links |',
             '| --- | --- | --- | --- |',
             '',
           ].join('\n'),
@@ -354,6 +354,21 @@ describe('frontmatter parsing and validation', () => {
       ),
       [],
     );
+  });
+
+  it('rejects obsolete, incomplete, and reordered showcase headers', () => {
+    for (const header of [
+      '| Name | Description | Team | Link |',
+      '| Name | Description | Availability | Link |',
+      '| Name | Availability | Description | Links |',
+    ]) {
+      hasError(
+        validate(undefined, (root) =>
+          writeFile(root, 'docs/showcase/microproducts.md', `${frontmatter(validMission)}\n${header}\n`),
+        ),
+        "table header must be exactly '| Name | Description | Availability | Links |'",
+      );
+    }
   });
 
   it('defaults to the repository root when no root argument is passed', () => {

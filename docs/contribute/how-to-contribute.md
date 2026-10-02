@@ -13,8 +13,8 @@ Use Node.js 22 for repository work. Run `nvm use` to select the Node.js 22.18.0
 version pinned in `.nvmrc`, then install the locked dependency tree with
 `npm ci`.
 
-1. Playbook modules: copy `templates/playbook-module.md`. Showcase entries: edit
-   the table in `docs/showcase/microproducts.md`. Other islands (agents,
+1. Playbook modules: copy `templates/playbook-module.md`. Showcase entries: follow
+   [Showcase alignment](#showcase-alignment) before editing the table. Other islands (agents,
    archetypes, standards, contribute, templates): edit or add a page in that
    section rather than copying a playbook template.
 2. Add required YAML frontmatter and content. `last_reviewed` must be a real
@@ -99,6 +99,35 @@ accessibility suite. Run the browser checks after a successful build:
 npx playwright install chromium
 npm run test:e2e -- --project=chromium
 ```
+
+## Showcase alignment
+
+[Trilemma Data Apps](https://data.trilemma.foundation/apps) is the editorial source
+for the Showcase. Propose new microproducts in the
+[Data repository](https://github.com/TrilemmaFoundation/data) first. Once an entry
+is reviewed there, open a Build PR to align `docs/showcase/microproducts.md`.
+
+Foundation maintainers review alignment whenever catalog names, summaries,
+statuses, or destinations change and at least every 90 days:
+
+1. Compare Data's `src/content/apps.ts` and its app entries with the deployed
+   Apps catalog. Preserve names, summaries, and order, including archived entries.
+2. Copy verified Data detail, source, live, and archive URLs. Keep alpha, beta,
+   local, and archived distinctions; a missing status does not establish active
+   maintenance, and a missing live URL must not become a hosted-app link.
+3. Use `Name | Description | Availability | Links`. Do not guess team sizes,
+   readiness, or current service health. Product names open Data detail pages.
+   External actions identify the product and announce that they open a new tab.
+4. Record the compared Data revision and source-inventory review dates in the
+   Showcase's maintainer comment. Set `last_reviewed` to the actual Build page
+   review date; it does not replace Data's source-review dates.
+5. Run the repository checks and review the rendered table, keyboard navigation,
+   local search, and generated LLM content before merging.
+
+Showcase membership does not automatically expand `/registry.json`. StackingSats'
+archived status records its current lifecycle; its existing maturity `5` and
+`maintained-product` label were retained from the prior assessment without
+reassessment. A readiness reassessment requires separate supporting evidence.
 
 ## Review Expectations
 

@@ -4,7 +4,7 @@ Thank you for helping improve the Build Trilemma knowledge hub. The full contrib
 
 ## Quickstart
 
-- Add or update playbook modules from `templates/playbook-module.md`. Showcase entries edit the table in `docs/showcase/microproducts.md`. Other doc islands follow that section’s existing page.
+- Add or update playbook modules from `templates/playbook-module.md`. Showcase entries first belong in [Trilemma Data Apps](https://data.trilemma.foundation/apps), then update the table in `docs/showcase/microproducts.md` using the [manual alignment workflow](docs/contribute/how-to-contribute.md#showcase-alignment). Other doc islands follow that section’s existing page.
 - Ensure each markdown file includes `title`, `description`, `last_reviewed` (`YYYY-MM-DD`), and `authors` (registered IDs from `src/data/authors.json`). Default `content_kind` is `module`, which requires `authors`. Author registry records may include an optional plain-text `bio` for their native `/authors/<id>` profile page.
 - Run the completion check locally; it includes validation, coverage tests, and the production build:
 

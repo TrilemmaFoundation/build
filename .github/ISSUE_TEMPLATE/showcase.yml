@@ -1,7 +1,17 @@
 name: Showcase entry
-description: Add a microproduct to the showcase table
+description: Align a reviewed Data Apps entry with the Showcase
 labels: [showcase]
 body:
+  - type: markdown
+    attributes:
+      value: "Add or update the reviewed entry in Trilemma Data Apps first, then propose the matching Build Showcase change. Use verified catalog URLs and availability; do not infer team sizes or maturity."
+  - type: input
+    id: catalog
+    attributes:
+      label: Data Apps detail URL
+      placeholder: https://data.trilemma.foundation/apps/product-slug
+    validations:
+      required: true
   - type: input
     id: name
     attributes:
@@ -11,29 +21,34 @@ body:
   - type: textarea
     id: problem
     attributes:
-      label: Problem
+      label: Catalog summary
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Solution
-    validations:
-      required: true
-  - type: dropdown
-    id: stage
-    attributes:
-      label: Stage
-      options:
-        - Idea
-        - Prototype
-        - Live
+      label: Proposed alignment change
     validations:
       required: true
   - type: input
+    id: stage
+    attributes:
+      label: Catalog status and availability
+      description: Copy any alpha, beta, or archived status and state whether a live app, local workstation, or source-only access is listed.
+    validations:
+      required: true
+  - type: textarea
     id: link
     attributes:
-      label: Link (website or repo)
+      label: Verified source, live, and archive URLs
+      description: Include the source URL for every entry and live or archive URLs only when Data lists them.
+    validations:
+      required: true
+  - type: input
+    id: review
+    attributes:
+      label: Compared Data revision and source-review date
+      description: Record the Data commit and the entry's source-inventory review date, separately from the Build page-review date.
     validations:
       required: true
   - type: input

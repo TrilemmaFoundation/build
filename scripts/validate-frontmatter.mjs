@@ -241,7 +241,7 @@ function validateFile(filePath, authorIds, root, errors) {
   errors.push(...fileErrors);
 }
 
-const SHOWCASE_TABLE_HEADER = '| Name | Description | Team | Link |';
+const SHOWCASE_TABLE_HEADER = '| Name | Description | Availability | Links |';
 
 function isMarkdownTableSeparator(line) {
   const trimmed = line.trim();

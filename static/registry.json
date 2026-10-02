@@ -5,14 +5,14 @@
   "products": [
     {
       "id": "stackingsats",
-      "name": "Stacking Sats",
-      "status": "active",
+      "name": "StackingSats",
+      "status": "archived",
       "maturity": 5,
       "maturity_label": "maintained-product",
       "scope": "trilemma",
       "archetype": "simulation-backtesting-product",
       "category": "bitcoin-analytics",
-      "problem": "Help users evaluate and improve Bitcoin accumulation strategies.",
+      "problem": "Help users research and test fixed-budget Bitcoin accumulation strategies.",
       "target_users": [
         "bitcoin investors",
         "quant researchers",
@@ -29,9 +29,9 @@
         "strategy comparison",
         "accumulation metrics"
       ],
-      "repo": "https://github.com/TrilemmaFoundation/Bitcoin-Analytics-Initiative",
-      "site": "https://www.stackingsats.org/",
-      "docs": "https://www.stackingsats.org/",
+      "repo": "https://github.com/hypertrial/stacksats",
+      "site": "https://stackingsats.org/",
+      "docs": "https://github.com/hypertrial/stacksats/blob/9ba73643c4478ddd92650557a90e91e64674f587/docs/data-source.md",
       "tags": ["bitcoin", "backtesting", "analytics", "dca"]
     }
   ]

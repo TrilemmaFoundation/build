@@ -45,6 +45,18 @@ describe('llmsFullSources', () => {
     assert.ok(relPaths.includes('docs/archetypes/simulation-backtesting-product.md'));
   });
 
+  it('preserves the complete Showcase catalog in the LLM source body', () => {
+    const showcase = buildLlmsFullSources(ROOT).filter(([rel]) => rel === 'docs/showcase/microproducts.md');
+    assert.equal(showcase.length, 1);
+    const [rel, , transform] = showcase[0];
+    const body = transform(fs.readFileSync(path.join(ROOT, rel), 'utf8'));
+    for (const name of ['TitanSkies', 'HyperOptions', 'TravelCanary', 'HouseHunter', 'RockyRoad', 'StackingSats']) {
+      assert.ok(body.includes(name), `missing ${name} from the Showcase LLM source`);
+      assert.ok(body.includes(`https://data.trilemma.foundation/apps/${name.toLowerCase()}`));
+    }
+    assert.doesNotMatch(body, /OddsFox|HonestRoles|SurgRisk/);
+  });
+
   it('uses canonical source titles for LLM headings without duplicated JSON titles', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'llms-titles-'));
     try {

@@ -74,6 +74,8 @@ html { scroll-padding-top: calc(var(--ifm-navbar-height) + 16px); }
 body, .main-wrapper { background: var(--tf-ghost-white); color: var(--tf-ink-black); overflow-wrap: break-word; }
 h1,h2,h3,h4 { letter-spacing: -.025em; }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--tf-azure-bold); outline-offset: 2px; }
+/* Keep hidden tab cues inside the link's scrolling container. */
+.theme-doc-markdown a:has(> .foundation-sr-only) { position: relative; }
 .navbar { height: auto; padding: 0; display: block; background: var(--tf-ghost-white); box-shadow: none; z-index: 60; }
 .playbook-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .playbook-links { display: flex; align-items: center; gap: 16px; }
@@ -109,8 +111,12 @@ article:has(table) + .pagination-nav { max-width: min(100%, var(--tf-width-conte
 .theme-doc-markdown table :is(th,td):first-child, .theme-doc-markdown table code { white-space: nowrap; }
 .docs-doc-id-microproducts .theme-doc-markdown table :is(th,td):nth-child(1) { min-width: 8rem; }
 .docs-doc-id-microproducts .theme-doc-markdown table :is(th,td):nth-child(2) { min-width: 12rem; }
-.docs-doc-id-microproducts .theme-doc-markdown table :is(th,td):nth-child(3) { white-space: nowrap; }
-.docs-doc-id-microproducts .theme-doc-markdown table :is(th,td):nth-child(4) { min-width: 9rem; white-space: nowrap; }
+.docs-doc-id-microproducts .theme-doc-markdown table :is(th,td):nth-child(3) { min-width: 9rem; white-space: nowrap; }
+.docs-doc-id-microproducts .theme-doc-markdown table :is(th,td):nth-child(4) { min-width: 8rem; }
+.docs-doc-id-microproducts .theme-doc-markdown table td a { display: inline-flex; align-items: center; min-height: 44px; }
+.docs-doc-id-microproducts .theme-doc-markdown table td:nth-child(4) a { display: flex; width: fit-content; white-space: nowrap; }
+.showcase-scroll-hint { display: none; }
+@media (max-width:767px) { .showcase-scroll-hint { display: block; font-size: 14px; color: var(--tf-primary-navy); } }
 .theme-doc-markdown :is(pre, code) { font-family: var(--ifm-font-family-monospace); }
 .theme-doc-markdown pre { max-width: 100%; overflow-x: auto; }
 .theme-doc-markdown :is(img,svg) { max-width: 100%; }
