@@ -38,6 +38,13 @@
                 "to": "/docs/playbook/frame/modern-data-stack"
               },
               {
+                "id": "design",
+                "title": "Design",
+                "description": "Turn a Frame brief into specifications, prototypes, and module boundaries before implementation.",
+                "docId": "playbook/frame/design",
+                "to": "/docs/playbook/frame/design"
+              },
+              {
                 "id": "quality-first",
                 "description": "How a modern approach to QA and spec-driven development helps ship quickly and confidently.",
                 "docId": "playbook/frame/quality-first",
@@ -70,6 +77,13 @@
                 "description": "A decision framework for releasing microproducts that informs prior phases of development.",
                 "docId": "playbook/build/release",
                 "to": "/docs/playbook/build/release"
+              },
+              {
+                "id": "release-quality",
+                "title": "Release Quality",
+                "description": "Decide whether a release candidate will have all of, and only, the expected impacts.",
+                "docId": "playbook/build/release-quality",
+                "to": "/docs/playbook/build/release-quality"
               }
             ]
           },

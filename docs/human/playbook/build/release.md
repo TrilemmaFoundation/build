@@ -4,7 +4,7 @@ sidebar_label: Release
 description: "A decision framework for releasing microproducts that informs prior phases of development."
 slug: /playbook/build/release
 tags: [playbook, build]
-last_reviewed: 2026-09-18
+last_reviewed: 2026-10-18
 authors: [rowan-lindsay]
 ---
 
@@ -61,9 +61,9 @@ service outage where a server cannot be reached but there are other examples suc
 ## Release Quality
 Every release candidate should satisfy requirements and meet functional and technical specifications. The release verification process essentially determines whether the release will have all of - and only - the expected impacts and deliver expected outcomes.
 
-This is a large topic that deserves its own article, and there are many different systems around it depending on product type, team size and technology.
+[Release Quality](/docs/playbook/build/release-quality) is where that question is answered: which impacts count, how new behavior differs from existing behavior, where checks run, and what evidence a risk tier requires before the decision on this page.
 
-Suffice it to say here that release quality checks are a vital part of the release checklist, should be mostly automated as the feature set and complexity grow over time, and rely on a number of tools and processes to be used earlier in the development pipeline.
+Those checks are a vital part of the release checklist. They should be mostly automated as the feature set and complexity grow, and they rely on tools and processes used earlier in the development pipeline.
 
 ## Environment
 Assuming your release does exactly what it's expected to in a test environment, will it work properly with other systems when it goes to production? Does the product as designed actually add value in the market?
@@ -91,4 +91,4 @@ when a release immediately causes downtime once deployed and a previous release 
 ## Conclusion
 This guide is intended to bring best practices from industry software development and cover the most important characteristics of a good release. Applying these to microproducts - no matter how small - will help you consistently deliver maximum value with the lowest risk.
 
-A number of tools and processes are not covered here, including specifics about release quality assurance, automated testing and verification. Keep an eye out for other articles covering those. They will be linked here as they are published.
+The specifics of release quality assurance, automated testing, and verification are in [Release Quality](/docs/playbook/build/release-quality).

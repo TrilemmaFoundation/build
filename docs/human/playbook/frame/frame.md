@@ -3,7 +3,7 @@ title: Frame
 description: "Phase 1 of the playbook: validate opportunity and architecture before building."
 slug: /playbook/frame
 tags: [playbook, frame]
-last_reviewed: 2026-08-28
+last_reviewed: 2026-10-18
 authors: [trilemma-foundation]
 ---
 
@@ -17,6 +17,7 @@ Establish whether a microproduct is worth building and feasible to deliver befor
 - You can access enough data to create clear utility, and every material external source has documented usage rights. See [Data Licensing](/docs/playbook/frame/data-licensing).
 - The value proposition is concrete enough to test quickly.
 - A baseline architecture is feasible within team and budget constraints, and every material data product has a justified data architecture: sources, freshness, storage, serving, and complexity. See [Modern Data Stack](/docs/playbook/frame/modern-data-stack).
+- Requirements are translated into specifications and module boundaries before implementation. See [Design](/docs/playbook/frame/design).
 
 ## Required Outputs
 
