@@ -15,7 +15,7 @@ A problem brief names the user, the pain, the data, and the utility you owe. Des
 
 Requirements, feature requests, bug reports, and analytics all feed the same pipeline. The job is to turn those inputs into specifications a builder can implement without guessing.
 
-A specification says what the software must do, in language a domain expert can check. Mockups and other visual representations belong in that specification when the behavior is easier to see than to describe. Write them down before implementation starts. The first prompt is a conversation. The specification is the decision.
+A specification says what the software must do, in language a domain expert can check. Mockups and diagrams belong in that specification when the behavior is easier to see than to describe. Write them down before implementation starts. The first prompt is a conversation. The specification is the decision.
 
 ## Prototyping
 
