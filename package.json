@@ -87,7 +87,8 @@
     "@swc/html": "1.16.2",
     "colord": "2.10.0",
     "joi": "17.13.8",
-    "smol-toml": "1.7.2"
+    "smol-toml": "1.7.2",
+    "follow-redirects": "1.16.1"
   },
   "engines": {
     "node": "22.x"
