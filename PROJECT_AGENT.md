@@ -6,4 +6,4 @@ Before finishing work, run `npm run check`. Fix lint, type, and test failures yo
 
 ## Local header
 
-Every route renders one Build-local header with a centered 44px Trilemma Foundation symbol link. Keep the existing local routes, page drawer, and search available; do not add the Foundation global navigation to this subdomain.
+Every route renders one Build-local header with a centered 44px Trilemma Foundation symbol link. From 997px, Humans and Agents sit on the symbol's left and Templates and Showcase on its right. Narrower widths keep those four routes in one scrolling row under the symbol. Keep the page drawer and search available; do not add the Foundation global navigation to this subdomain.

@@ -538,14 +538,19 @@ test('only local navigation is rendered and offsets track its actual height', as
       expect(box!.y).toBe(0);
       if (width >= 997) {
         await expect(page.getByRole('button', { name: 'Open page navigation' })).toBeHidden();
-        const links = await page.locator('.playbook-links').boundingBox();
-        expect(Math.abs(links!.x + links!.width / 2 - width / 2)).toBeLessThanOrEqual(1);
-        const search = await page.locator('.playbook-search').boundingBox();
-        expect(links!.y).toBeGreaterThanOrEqual(search!.y + search!.height);
+        const symbol = await page.locator('.foundation-local-symbol').boundingBox();
+        const leading = await page.locator('.playbook-links--leading').boundingBox();
+        const trailing = await page.locator('.playbook-links--trailing').boundingBox();
+        expect(await page.locator('.playbook-links--stacked').boundingBox()).toBeNull();
+        expect(leading!.x + leading!.width).toBeLessThanOrEqual(symbol!.x + 1);
+        expect(trailing!.x).toBeGreaterThanOrEqual(symbol!.x + symbol!.width - 1);
+        const symbolMid = symbol!.y + symbol!.height / 2;
+        expect(Math.abs(leading!.y + leading!.height / 2 - symbolMid)).toBeLessThanOrEqual(1);
+        expect(Math.abs(trailing!.y + trailing!.height / 2 - symbolMid)).toBeLessThanOrEqual(1);
       }
       expect(box!.height).toBeLessThan(width >= 997 ? 120 : 160);
       await expect.poll(() => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--foundation-shell-height')))).toBeCloseTo(box!.height, 0);
-      for (const link of await header.locator('a').all()) await expect(link).toBeInViewport({ ratio: 1 });
+      for (const link of await header.locator('a:visible').all()) await expect(link).toBeInViewport({ ratio: 1 });
     }
   }
 });

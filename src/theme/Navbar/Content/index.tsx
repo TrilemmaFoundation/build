@@ -4,8 +4,14 @@ import { useLocation } from '@docusaurus/router';
 import { useNavbarMobileSidebar } from '@docusaurus/theme-common/internal';
 import SearchBar from '@theme/SearchBar';
 
-const links = [ ['Humans', '/docs/request-for-microproducts'], ['Agents', '/agents'], ['Templates', '/templates'], ['Showcase', '/showcase'] ];
+const links = [ ['Humans', '/docs/request-for-microproducts'], ['Agents', '/agents'], ['Templates', '/templates'], ['Showcase', '/showcase'] ] as const;
+const leadingLinks = links.slice(0, 2);
+const trailingLinks = links.slice(2);
 let focusAfterDrawerNavigation = false;
+
+function SectionLinks({ pathname, items }: { pathname: string; items: readonly (readonly [string, string])[] }) {
+  return items.map(([label, to]) => <Link key={to} to={to} aria-current={pathname === to || pathname.startsWith(`${to}/`) || (label === 'Humans' && pathname.startsWith('/docs/')) ? 'page' : undefined}>{label}</Link>);
+}
 
 export default function NavbarContent() {
   const { pathname } = useLocation();
@@ -73,11 +79,16 @@ export default function NavbarContent() {
   }, [sidebar.shown, sidebar.shouldRender, sidebar.toggle]);
   return <div ref={header} className="playbook-header foundation-local-nav">
     <nav className="foundation-local-inner playbook-tools" aria-label="Build Trilemma navigation">
-      <Link to="/" className="foundation-local-brand">Build Trilemma</Link>
+      <div className="playbook-edge playbook-edge--start">
+        <Link to="/" className="foundation-local-brand">Build Trilemma</Link>
+        <div className="playbook-links playbook-links--leading"><SectionLinks pathname={pathname} items={leadingLinks} /></div>
+      </div>
       <a href="https://www.trilemma.foundation/" className="foundation-local-symbol" aria-label="Visit Trilemma Foundation"><img src="/foundation/symbol.svg" alt="" /></a>
       {!sidebar.disabled && <button ref={pageToggle} type="button" className="playbook-page-toggle" aria-label="Open page navigation" aria-expanded={sidebar.shown} onClick={sidebar.toggle}>Pages</button>}
-      <div className="playbook-links">{links.map(([label, to]) => <Link key={to} to={to} aria-current={pathname === to || pathname.startsWith(`${to}/`) || (label === 'Humans' && pathname.startsWith('/docs/')) ? 'page' : undefined}>{label}</Link>)}</div>
-      <div className="playbook-search"
+      <div className="playbook-links playbook-links--stacked"><SectionLinks pathname={pathname} items={links} /></div>
+      <div className="playbook-edge playbook-edge--end">
+        <div className="playbook-links playbook-links--trailing"><SectionLinks pathname={pathname} items={trailingLinks} /></div>
+        <div className="playbook-search"
         onKeyDown={event => {
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
             // Use browser geometry; the plugin overcounts the panel padding.
@@ -92,6 +103,7 @@ export default function NavbarContent() {
           input.focus({ preventScroll: true });
           input.removeEventListener('focus', keepClosed, true);
         }}><SearchBar /></div>
+      </div>
     </nav>
   </div>;
 }

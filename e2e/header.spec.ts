@@ -26,14 +26,18 @@ test('Foundation symbol is linked, centered, and clear of local controls', async
     await expect(symbol).toBeVisible();
     const metrics = await page.evaluate(() => {
       const logo = document.querySelector<HTMLElement>('.foundation-local-symbol')!;
-      const names = ['.foundation-local-brand', '.playbook-page-toggle', '.playbook-search', '.playbook-links'];
+      const names = ['.foundation-local-brand', '.playbook-page-toggle', '.playbook-search'];
       const rect = (node: Element) => {
         const { x, y, width, height } = node.getBoundingClientRect();
         return { x, y, width, height };
       };
+      const controls = [
+        ...names.map(name => document.querySelector<HTMLElement>(name)),
+        ...document.querySelectorAll<HTMLElement>('.playbook-links'),
+      ].filter((node): node is HTMLElement => Boolean(node?.getClientRects().length));
       return {
         logo: rect(logo),
-        controls: names.map(name => document.querySelector<HTMLElement>(name)).filter((node): node is HTMLElement => Boolean(node?.getClientRects().length)).map(rect),
+        controls: controls.map(rect),
         image: rect(logo.querySelector('img')!),
       };
     });
@@ -67,14 +71,18 @@ test('Foundation symbol is linked, centered, and clear of local controls', async
     await page.setViewportSize({ width, height: 844 });
     const metrics = await page.evaluate(() => {
       const logo = document.querySelector<HTMLElement>('.foundation-local-symbol')!;
-      const names = ['.foundation-local-brand', '.playbook-page-toggle', '.playbook-search', '.playbook-links'];
+      const names = ['.foundation-local-brand', '.playbook-page-toggle', '.playbook-search'];
       const rect = (node: Element) => {
         const { x, y, width, height } = node.getBoundingClientRect();
         return { x, y, width, height };
       };
+      const controls = [
+        ...names.map(name => document.querySelector<HTMLElement>(name)),
+        ...document.querySelectorAll<HTMLElement>('.playbook-links'),
+      ].filter((node): node is HTMLElement => Boolean(node?.getClientRects().length));
       return {
         logo: rect(logo),
-        controls: names.map(name => document.querySelector<HTMLElement>(name)).filter((node): node is HTMLElement => Boolean(node?.getClientRects().length)).map(rect),
+        controls: controls.map(rect),
       };
     });
     expect(Math.abs(metrics.logo.x + metrics.logo.width / 2 - width / 2)).toBeLessThanOrEqual(1);
