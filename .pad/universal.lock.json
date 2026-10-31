@@ -2,7 +2,7 @@
   "files": {
     ".agents/skills/pad-engineering/SKILL.md": "3cb5185116663c2f8ee58764a4180784ff2604b05e2e75b2b6f13cc1ccfd0071",
     "AGENTS.md": "8e0e7df28f0df8d847f4981da0978c28c2c9615b0382c3bfc62c6af90a52f6b1",
-    "PROJECT_AGENT.md": "2fe79a13ae6401696119f058bb985c7e5b0fa2ad7fadf864fe151f11beacf84b",
+    "PROJECT_AGENT.md": "efcea79a608bfe347beb59130462a3bcc28f6482d003b1ceaf2d36fd5a409147",
     "scripts/verify": "f0d9901c69d77a47f084a6cf64176e89a31f0618b8ef6d85bb984b649e0f1b31",
     "scripts/verify-fast": "ac5cb87f802f3b4142c015643ed951327ecea8f46bb61d503afe248a35e51172"
   },

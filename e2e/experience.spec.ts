@@ -541,9 +541,9 @@ test('only local navigation is rendered and offsets track its actual height', as
         const links = await page.locator('.playbook-links').boundingBox();
         expect(Math.abs(links!.x + links!.width / 2 - width / 2)).toBeLessThanOrEqual(1);
         const search = await page.locator('.playbook-search').boundingBox();
-        expect(links!.x + links!.width).toBeLessThan(search!.x);
+        expect(links!.y).toBeGreaterThanOrEqual(search!.y + search!.height);
       }
-      expect(box!.height).toBeLessThan(width >= 1024 ? 65 : 120);
+      expect(box!.height).toBeLessThan(width >= 997 ? 120 : 160);
       await expect.poll(() => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--foundation-shell-height')))).toBeCloseTo(box!.height, 0);
       for (const link of await header.locator('a').all()) await expect(link).toBeInViewport({ ratio: 1 });
     }

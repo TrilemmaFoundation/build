@@ -10,8 +10,8 @@ export default defineConfig({
   use: { baseURL: 'http://127.0.0.1:43918', screenshot: 'only-on-failure', trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', testMatch: '**/experience.spec.ts', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', testMatch: '**/experience.spec.ts', use: { ...devices['Desktop Safari'] } },
+    { name: 'firefox', testMatch: ['**/experience.spec.ts', '**/header.spec.ts'], use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', testMatch: ['**/experience.spec.ts', '**/header.spec.ts'], use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
     command: 'npm run serve -- --host 127.0.0.1 --port 43918 --no-open',

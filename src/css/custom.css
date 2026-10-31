@@ -77,12 +77,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* Keep hidden tab cues inside the link's scrolling container. */
 .theme-doc-markdown a:has(> .foundation-sr-only) { position: relative; }
 .navbar { height: auto; padding: 0; display: block; background: var(--tf-ghost-white); box-shadow: none; z-index: 60; }
-.playbook-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.playbook-links { display: flex; align-items: center; gap: 16px; }
-.playbook-search { margin-left: auto; }
+.playbook-tools { display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); align-items: center; gap: 4px 8px; }
+.foundation-local-brand { grid-column: 1; grid-row: 1; justify-self: start; min-width: 0; margin-right: 0; }
+.foundation-local-symbol { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 10px; }
+.foundation-local-symbol img { display: block; width: 36px; height: 36px; }
+.playbook-links { grid-column: 1 / -1; grid-row: 3; display: flex; align-items: center; gap: 16px; min-width: 0; max-width: 100%; overflow-x: auto; white-space: nowrap; }
+.playbook-search { grid-column: 3; grid-row: 1; justify-self: end; min-width: 0; }
 .playbook-search .navbar__search { padding: 0; }
 .playbook-search [class*='dropdownMenu'] { max-height: calc(100dvh - var(--foundation-shell-height, 52px) - 16px); overflow-y: auto; overscroll-behavior: contain; }
 .playbook-search input { min-height: 44px; border: 1px solid var(--tf-azure-bold); border-radius: 10px; font-size: 14px; }
+@media (min-width:640px) { .foundation-local-symbol img { width: 40px; height: 40px; } }
 .playbook-search mark,
 [class*='searchResultItem'] mark {
   background: none !important;
@@ -141,15 +145,18 @@ article:has(table) + .pagination-nav { max-width: min(100%, var(--tf-width-conte
 .bt-hero-button { min-height: 52px; padding: 12px 24px; font-size: 20px; }
 @media (min-width:640px) { .bt-page { padding: 96px 24px; } .bt-shell h1 { font-size: 60px; } .bt-hero-button { font-size: 24px; } }
 @media (min-width:1024px) { .bt-page { padding:112px 32px; } .bt-shell h1 { font-size:72px; } }
-/* Equal side columns keep navigation centered despite the wider search field. */
+/* Keep the symbol centered independently of the brand and search widths. */
 @media (min-width:997px) {
   .playbook-page-toggle { display: none !important; }
-  .playbook-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
-  .playbook-tools .foundation-local-brand { justify-self: start; margin-right: 0; }
-  .playbook-links { grid-column: 2; justify-self: center; }
-  .playbook-search { grid-column: 3; justify-self: end; margin-left: 0; }
+  .playbook-links { grid-row: 2; justify-self: center; width: max-content; overflow: visible; }
 }
-@media (max-width:996px) { .playbook-links { order: 3; flex-basis: 100%; max-width: 100%; overflow-x: auto; white-space: nowrap; } .playbook-tools { gap: 0 8px; } .playbook-search input { width: 8rem; } }
+@media (max-width:996px) {
+  .playbook-tools { gap: 0 8px; }
+  .playbook-page-toggle { grid-column: 1; grid-row: 2; justify-self: start; }
+  .playbook-links { grid-row: 3; }
+  .playbook-search, .playbook-search .navbar__search { width: 100%; }
+  .playbook-search input { width: 100%; min-width: 0; }
+}
 @media (prefers-reduced-motion: no-preference) { .button:hover, .bt-hero-button:hover { transform: translateY(-2px); box-shadow: 0 6px 8px rgba(10,10,20,.85); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 
